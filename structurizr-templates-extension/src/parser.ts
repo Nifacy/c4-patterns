@@ -1,8 +1,8 @@
 import * as vscode from "vscode"
 
 
-const PLUGIN_APPLY_EXPR = new RegExp(/(!plugin\s+([a-z0-9]+(\.[a-zA-Z0-9_$]+)*)(?:\s*\{[\s\S]*?\})?)/g);
-const PLUGIN_EXPR = new RegExp(/^!plugin\s+(?<name>[a-z0-9]+(\.[a-zA-Z0-9_$]+)*)\s*(?:\{(?<params>[\s\S]*?)\})?$/gm);
+const PLUGIN_APPLY_EXPR = new RegExp(/(\$pattern\s+([a-z0-9]+(\.[a-zA-Z0-9_$]+)*)(?:\s*\{[\s\S]*?\})?)/g);
+const PLUGIN_EXPR = new RegExp(/^\$pattern\s+(?<name>[a-z0-9]+(\.[a-zA-Z0-9_$]+)*)\s*(?:\{(?<params>[\s\S]*?)\})?$/gm);
 const PARAM_EXPR = new RegExp(/^\s*(?<name>\S+)\s+(?<value>(?:['"][^'"\n]+['"])|\S+)\s*$/g);
 const UNFINISHED_PARAM_EXPR = new RegExp(/^\s*(?<name>\S+)\s*$/g);
 const STRING_BRACKETS_EXPR = new RegExp(/^['"]|['"]$/g);
