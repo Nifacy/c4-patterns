@@ -1,4 +1,6 @@
 workspace "Reverse Proxy" {
+    !plugin com.patterns.PatternSyntaxPlugin
+
     model {
         customer = person "Customer"
 
@@ -26,7 +28,7 @@ workspace "Reverse Proxy" {
         webApp -> db2 "Requests users"
         app3 -> db2 "ABOBA"
 
-       !plugin com.patterns.ReverseProxy {
+       $pattern com.patterns.ReverseProxy {
            target webApp
        }
     }

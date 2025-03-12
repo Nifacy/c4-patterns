@@ -11,12 +11,19 @@
     <name>pattern-plugins</name>
     <url>http://maven.apache.org</url>
 
+	<repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
     <dependencies>
 
-        <dependency>
-            <groupId>com.structurizr</groupId>
+    	<dependency>
+            <groupId>com.github.Nifacy.structurizr</groupId>
             <artifactId>structurizr-dsl</artifactId>
-            <version>3.2.1</version>
+            <version>add-patterns-parser-8c28a9fb15-1</version>
         </dependency>
 
     </dependencies>

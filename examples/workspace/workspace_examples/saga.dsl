@@ -1,4 +1,6 @@
 workspace {
+    !plugin com.patterns.PatternSyntaxPlugin
+
     model {
         user = person "User"
 
@@ -11,7 +13,7 @@ workspace {
             user -> api "Creates Order"
             api -> orchestrator "Sends request to create order transaction"
 
-            !plugin com.patterns.Saga {
+            $pattern com.patterns.Saga {
                 orchestrator    orchestrator
 
                 item.0.service  orderService

@@ -1,4 +1,6 @@
 workspace {
+    !plugin com.patterns.PatternSyntaxPlugin
+
     model {
         user = person "User"
 
@@ -13,13 +15,13 @@ workspace {
         user -> orderApp "Creates order"
         orderApp -> paymentApp "Sends payment request"
 
-        !plugin com.patterns.DatabasePerService {
+        $pattern com.patterns.DatabasePerService {
             service          orderApp
             database         paymentDatabase
             dataDescription  "order data"
         }
 
-        !plugin com.patterns.DatabasePerService {
+        $pattern com.patterns.DatabasePerService {
             service          paymentApp
             database         paymentDatabase
             dataDescription  "payment data"

@@ -1,4 +1,6 @@
 workspace "Layered architecture" {
+    !plugin com.patterns.PatternSyntaxPlugin
+
     model {
         user = person "User"
         system = softwareSystem OnlineShop {
@@ -25,7 +27,7 @@ workspace "Layered architecture" {
 
         // consumerFrontend -> databaseMain "Bad relationship"
 
-        !plugin com.patterns.Layered {
+        $pattern com.patterns.Layered {
             layer.0.name "Frontend Layer"
             layer.0.elements consumerFrontend,sellerFrontend
 

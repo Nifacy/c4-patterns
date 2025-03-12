@@ -1,4 +1,6 @@
 workspace {
+    !plugin com.patterns.PatternSyntaxPlugin
+
     model {
         user = person "User"
 
@@ -16,7 +18,7 @@ workspace {
             orderService -> paymentService "Sends payment request"
             orderService -> inventoryService "Checks items availability"
 
-            !plugin com.patterns.ServiceRegistry {
+            $pattern com.patterns.ServiceRegistry {
                 registry             serviceRegistry
                 connectedServices    paymentService,inventoryService
 
