@@ -6,4 +6,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'pattern-plugins'
+rootProject.name = 'pattern-examples'
+
+include 'pattern-plugins'
