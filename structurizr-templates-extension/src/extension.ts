@@ -113,56 +113,6 @@ function dumpPluginArgumentName(name: pluginParser.ArgumentName): string {
 }
 
 
-class CodelensProvider implements vscode.CodeLensProvider {
-
-	private patternLens: lens.PatternLens;
-	private codeLenses: vscode.CodeLens[] = [];
-	private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
-	public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
-
-	constructor(patternLens: lens.PatternLens) {
-		this.patternLens = patternLens;
-
-		vscode.workspace.onDidChangeConfiguration((_) => {
-			this._onDidChangeCodeLenses.fire();
-		});
-	}
-
-	public provideCodeLenses(document: vscode.TextDocument, _token: vscode.CancellationToken): Thenable<vscode.CodeLens[]> {
-		return this.asyncProvideCodeLens(document);
-	}
-
-	public resolveCodeLens(codeLens: vscode.CodeLens, _token: vscode.CancellationToken) {
-		return codeLens;
-	}
-
-	private async asyncProvideCodeLens(document: vscode.TextDocument): Promise<vscode.CodeLens[]> {
-		this.codeLenses = [];
-
-		for (const applyRange of pluginParser.GetPluginApplyRanges(document)) {
-			try {
-				const info = await getPatternApply(this.patternLens, document, applyRange);
-				if (info === undefined) {
-					continue;
-				}
-
-				const goToDefinitionCommand: vscode.Command = {
-					title: "Go to pattern definition",
-					command: "structurizr-templates.showPluginDefinition",
-					arguments: [info.patternInfo.pluginName],
-				};
-
-				this.codeLenses.push(new vscode.CodeLens(info.range, goToDefinitionCommand));
-			} catch (e) {
-				console.log("Got error: ", e);
-			}
-		}
-
-		return this.codeLenses;
-	}
-}
-
-
 class HoverProvider implements vscode.HoverProvider {
 	private patternLens: lens.PatternLens;
 
@@ -397,17 +347,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		const patternLensClient = new lens.PatternLens(patternLensPath);
 
 		console.log("Initialize Pattern Lens client... [ok]");
-
-		console.log("Register CodeLens provider...");
-
-		context.subscriptions.push(
-			vscode.languages.registerCodeLensProvider(
-				"*",
-				new CodelensProvider(patternLensClient),
-			)
-		);
-
-		console.log("Register CodeLens provider... [ok]");
 
 		console.log("Register Hover provider ...");
 
