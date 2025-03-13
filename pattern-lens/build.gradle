@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.json:json:20240303'
+    implementation 'com.structurizr:structurizr-dsl:3.2.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+shadowJar {
+    manifest {
+        attributes(
+                'Main-Class': 'com.patterns.lens.App'
+        )
+    }
+    archiveFileName = 'pattern-lens.jar'
+}
+
+build {
+    dependsOn shadowJar
+}
