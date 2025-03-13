@@ -1,0 +1,8 @@
+.vscode/**
+.vscode-test/**
+.yarnrc
+**/tsconfig.json
+**/eslint.config.mjs
+**/*.map
+out/
+node_modules/

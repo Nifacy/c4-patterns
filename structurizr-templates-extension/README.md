@@ -1,0 +1,1 @@
+# structurizr-templates-extension README
