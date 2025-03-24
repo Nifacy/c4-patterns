@@ -1,85 +1,93 @@
 package com.patterns;
 
-import com.structurizr.dsl.CustomSyntaxEntityParser;
-import com.structurizr.dsl.CustomSyntaxEntityParserContext;
+import com.structurizr.dsl.StructurizrDslParser;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
-class PatternParser implements CustomSyntaxEntityParser {
+public class PatternParser {
+    private final static String PATTERN_LANGUAGE_NAME_PREFIX = "pattern:";
+    private static String langName = null;
 
-    private PatternBuilder builder;
-    private final CustomSyntaxEntityParserContext context;
-
-    PatternParser(CustomSyntaxEntityParserContext context) {
-        // this.builder = new PatternBuilder();
-        this.context = context;
-        this.builder = null;
+    public static boolean isPatternLanguageSpecified(String language) {
+        return language.startsWith(PATTERN_LANGUAGE_NAME_PREFIX);
     }
 
-    @Override
-    public void parseHeader(String[] tokens) {
-        if (tokens.length > 2) {
-            throw new RuntimeException("Too many tokens, expected: $pattern <pattern-name>");
+    public static void setLangName(String name) {
+        langName = name;
+    }
+
+    public static void run(PatternParserContext context, String language, List<List<String>> tokens) {
+        System.out.println("[PatternParser] running pattern:");
+        System.out.println("- name: " + langName);
+        System.out.println("- context:");
+        System.out.println("  - parser:" + context.getDslParser());
+        System.out.println("  - workspace:" + context.getDslWorkspace());
+        System.out.println("  - dsl file:" + context.getDslFile());
+        System.out.println("- tokens: ");
+        for (List<String> lineTokens : tokens) {
+            System.out.print("[");
+            for (String token : lineTokens) {
+                System.out.print(token + ", ");
+            }
+            System.out.println("]");
         }
 
-        if (tokens.length < 2) {
-            throw new RuntimeException("Expected: $pattern <pattern-name>");
-        }
-
-        this.builder = new PatternBuilder(
-            tokens[1],
-            this.context.getDslFile(),
-            this.context.getDslParser(),
-            this.context.getWorkspace()
+        PatternBuilder builder = new PatternBuilder(
+                getPatternName(langName),
+                context.getDslFile(),
+                context.getDslParser(),
+                context.getDslWorkspace()
         );
-    }
 
-    @Override
-    public void parseBlockLine(String[] tokens) {
-        System.err.println("[PatternParser] [log] parse parameter ...");
-
-        if (tokens.length > 2) {
-            throw new RuntimeException("Too many tokens, expected: <name> <value>");
+        for (List<String> pair : tokens) {
+            builder.addParameter(pair.get(0), pair.get(1));
         }
 
-        if (tokens.length < 2) {
-            throw new RuntimeException("Expected: <name> <value>");
+        builder.run();
+    }
+
+    public static StructurizrDslParser getDslParser(Object scriptContext) throws Exception {
+        Class<?> scriptContextClass = scriptContext.getClass();
+        Field dslParserField = findField(scriptContextClass, "dslParser");
+
+        dslParserField.setAccessible(true);
+        return (StructurizrDslParser) dslParserField.get(scriptContext);
+    }
+
+    private static String getPatternName(String languageName) {
+        if (!isPatternLanguageSpecified(languageName)) {
+            throw new IllegalArgumentException("'" + languageName + "' is not a pattern call");
         }
 
-        String name = tokens[0];
-        String value = tokens[1];
-
-        this.builder.addParameter(name, value);
+        return languageName.replaceFirst("^" + PATTERN_LANGUAGE_NAME_PREFIX, "");
     }
 
-    @Override
-    public void onEnd() {
-        this.builder.run();
+    private static Field findField(Class<?> clazz, String fieldName) {
+        Class<?> current = clazz;
+
+        while (current != null) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+
+        throw new RuntimeException("Can't find field " + fieldName);
     }
 
-    // private static final String GRAMMAR = "pattern <pattern-name>";
+    public static List<List<String>> tokenize(List<String> lines, Object tokenizer) throws Exception {
+        Method tokenizeMethod = tokenizer.getClass().getDeclaredMethod("tokenize", String.class);
+        tokenizeMethod.setAccessible(true);
+        List<List<String>> tokens = new ArrayList<>();
 
-    // private static final int PATTERN_NAME_INDEX = 1;
+        for (String line : lines) {
+            tokens.add((List<String>) tokenizeMethod.invoke(tokenizer, line));
+        }
 
-    // private final static int PARAMETER_NAME_INDEX = 0;
-    // private final static int PARAMETER_VALUE_INDEX = 1;
-
-    // void parseParameter(PatternDslContext context, Tokens tokens) {
-    //     // <name> <value>
-
-    //     System.err.println("[PatternParser] [log] parse parameter ...");
-
-    //     if (tokens.hasMoreThan(PARAMETER_VALUE_INDEX)) {
-    //         throw new RuntimeException("Too many tokens, expected: <name> <value>");
-    //     }
-
-    //     if (tokens.size() != 2) {
-    //         throw new RuntimeException("Expected: <name> <value>");
-    //     }
-
-    //     String name = tokens.get(PARAMETER_NAME_INDEX);
-    //     String value = tokens.get(PARAMETER_VALUE_INDEX);
-
-    //     context.addParameter(name, value);
-    // }
-
+        return tokens;
+    }
 }
