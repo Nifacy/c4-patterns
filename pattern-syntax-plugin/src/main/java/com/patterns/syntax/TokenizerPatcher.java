@@ -6,18 +6,18 @@ import javassist.CtMethod;
 
 import java.security.ProtectionDomain;
 
-class StructurizrDslParserPatcher implements ClassPatcher {
-    private static final String TARGET_CLASS_NAME = "com/structurizr/dsl/StructurizrDslParser";
+class TokenizerPatcher implements ClassPatcher {
+    private static final String TARGET_CLASS_NAME = "com/structurizr/dsl/Tokenizer";
 
     @Override
     public byte[] patchClass(Module module, ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-        CtClass tokensType = cp.get("java.util.List");
-        CtMethod method = ctClass.getDeclaredMethod("preProcessLines", new CtClass[] { tokensType });
+        CtClass stringType = cp.get("java.lang.String");
+        CtMethod method = ctClass.getDeclaredMethod("tokenize", new CtClass[] { stringType });
 
-        method.insertBefore("""
-            lines = com.patterns.syntax.PatternPreprocessor.preProcessLines(lines);
+        method.insertAfter("""
+            $_ = com.patterns.syntax.PatternPreprocessor.preProcessTokens($_);
         """);
 
         return ctClass.toBytecode();
