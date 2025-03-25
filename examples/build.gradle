@@ -1,29 +1,5 @@
-task buildPatternSyntaxPlugin(type: Exec) {
-    def patternSyntaxPluginProjectPath = new File(rootDir.parentFile, "pattern-syntax-plugin")
-    def gradlewName = System.getProperty('os.name').toLowerCase().contains('windows')
-            ? 'gradlew.bat'
-            : './gradlew'
-    def gradlewPath = new File(patternSyntaxPluginProjectPath, gradlewName)
-
-    commandLine gradlewPath, '--project-dir', patternSyntaxPluginProjectPath, 'build'
-}
-
-task copyPatternSyntaxPlugin(type: Copy) {
-    dependsOn 'buildPatternSyntaxPlugin'
-
-    def patternSyntaxPluginProjectPath = new File(rootDir.parentFile, "pattern-syntax-plugin")
-    def libsDirPath = new File(patternSyntaxPluginProjectPath, "build/libs")
-
-    def pluginsDir = layout.buildDirectory.dir("workspaces/plugins").get().asFile
-
-    from libsDirPath
-    into pluginsDir
-    include 'pattern-syntax-plugin-*.jar'
-}
-
 task build {
     dependsOn ':pattern-plugins:build'
-    dependsOn 'copyPatternSyntaxPlugin'
 
     doLast {
         def workspacesDir = layout.buildDirectory.dir("workspaces").get().asFile

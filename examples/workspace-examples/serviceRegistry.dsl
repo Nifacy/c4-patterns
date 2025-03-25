@@ -1,6 +1,4 @@
 workspace {
-    !plugin com.patterns.PatternSyntaxPlugin
-
     model {
         user = person "User"
 
