@@ -1,7 +1,6 @@
 package com.patterns.syntax;
 
 import java.lang.instrument.ClassFileTransformer;
-import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.List;
@@ -26,8 +25,7 @@ public class PatternSyntaxPlugin {
                 Class<?> classBeingRedefined,
                 ProtectionDomain protectionDomain,
                 byte[] classfileBuffer
-        ) throws IllegalClassFormatException {
-
+        ) {
             try {
                 for (ClassPatcher patcher : patchers) {
                     if (className.equals(patcher.getTargetClassName())) {

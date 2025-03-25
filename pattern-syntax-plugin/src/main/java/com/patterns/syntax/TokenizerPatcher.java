@@ -10,7 +10,14 @@ class TokenizerPatcher implements ClassPatcher {
     private static final String TARGET_CLASS_NAME = "com/structurizr/dsl/Tokenizer";
 
     @Override
-    public byte[] patchClass(Module module, ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws Exception {
+    public byte[] patchClass(
+            Module module,
+            ClassLoader loader,
+            String className,
+            Class<?> classBeingRedefined,
+            ProtectionDomain protectionDomain,
+            byte[] classfileBuffer
+    ) throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
         CtClass stringType = cp.get("java.lang.String");
