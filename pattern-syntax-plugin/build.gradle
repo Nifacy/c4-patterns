@@ -7,7 +7,6 @@ group = 'com.patterns'
 version = '1.0'
 
 dependencies {
-    implementation 'com.structurizr:structurizr-dsl:3.2.1'
     implementation 'org.javassist:javassist:3.30.2-GA'
 }
 
@@ -18,6 +17,8 @@ java {
 }
 
 shadowJar {
+    archiveClassifier.set('')
+
     manifest {
         attributes(
                 'Premain-Class': 'com.patterns.syntax.PatternSyntaxPlugin',
@@ -26,7 +27,10 @@ shadowJar {
         )
     }
 
-    exclude('com/structurizr/**')
     exclude('org/**')
     minimize()
+}
+
+build {
+    dependsOn shadowJar
 }
