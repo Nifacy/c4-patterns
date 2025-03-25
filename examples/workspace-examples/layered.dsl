@@ -1,6 +1,4 @@
 workspace "Layered architecture" {
-    !plugin com.patterns.PatternSyntaxPlugin
-
     model {
         user = person "User"
         system = softwareSystem OnlineShop {

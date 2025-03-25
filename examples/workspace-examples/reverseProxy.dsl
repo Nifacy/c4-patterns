@@ -1,6 +1,4 @@
 workspace "Reverse Proxy" {
-    !plugin com.patterns.PatternSyntaxPlugin
-
     model {
         customer = person "Customer"
 

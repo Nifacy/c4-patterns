@@ -1,12 +1,13 @@
 plugins {
     id 'java-library'
+    id 'com.gradleup.shadow' version '8.3.5'
 }
 
 group = 'com.patterns'
 version = '1.0'
 
 dependencies {
-    implementation 'com.github.Nifacy.structurizr:structurizr-dsl:custom-syntax-entities-v1.0.0'
+    implementation 'org.javassist:javassist:3.30.2-GA'
 }
 
 java {
@@ -15,7 +16,21 @@ java {
     }
 }
 
-jar {
-    archiveBaseName = rootProject.name
-    archiveVersion = version
+shadowJar {
+    archiveClassifier.set('')
+
+    manifest {
+        attributes(
+                'Premain-Class': 'com.patterns.syntax.PatternSyntaxPlugin',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true'
+        )
+    }
+
+    exclude('org/**')
+    minimize()
+}
+
+build {
+    dependsOn shadowJar
 }
