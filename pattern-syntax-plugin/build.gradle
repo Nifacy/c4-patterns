@@ -20,12 +20,13 @@ java {
 shadowJar {
     manifest {
         attributes(
-                'Premain-Class': 'com.patterns.PatternSyntaxPlugin',
+                'Premain-Class': 'com.patterns.syntax.PatternSyntaxPlugin',
                 'Can-Redefine-Classes': 'true',
                 'Can-Retransform-Classes': 'true'
         )
     }
 
     exclude('com/structurizr/**')
+    exclude('org/**')
     minimize()
 }
