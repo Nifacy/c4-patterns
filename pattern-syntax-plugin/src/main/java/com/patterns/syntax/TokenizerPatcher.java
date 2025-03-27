@@ -24,7 +24,11 @@ class TokenizerPatcher implements ClassPatcher {
         CtMethod method = ctClass.getDeclaredMethod("tokenize", new CtClass[] { stringType });
 
         method.insertAfter("""
-            $_ = com.patterns.syntax.PatternPreprocessor.preProcessTokens($_);
+            if (com.patterns.syntax.PatternCallWrapper.isPatternHeader($_)) {
+                System.out.println("[PatternCallWrapper] pattern header");
+                $_ = com.patterns.syntax.PatternCallWrapper.wrapPatternHeader($_);
+                System.out.println("[PatternCallWrapper] wrapped pattern call: " + $_);
+            }
         """);
 
         return ctClass.toBytecode();

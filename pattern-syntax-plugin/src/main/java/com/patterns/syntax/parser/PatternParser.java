@@ -17,7 +17,7 @@ public class PatternParser {
         if (!checkHeaderTokens(tokens)) {
             throw new IllegalArgumentException("Expected: $pattern <pattern-name>");
         }
-        this.pluginName = tokens.get(1);
+        this.pluginName = tokens.get(0);
     }
 
     public void parseBlockLine(List<String> tokens) {
@@ -27,14 +27,20 @@ public class PatternParser {
         this.pluginParameters.put(tokens.get(0), tokens.get(1));
     }
 
-    public PluginCallInfo getPatternCallInfo() {
+    public PluginCallInfo getPluginCallInfo() {
         return new PluginCallInfo(pluginName, pluginParameters);
     }
 
     private static boolean checkHeaderTokens(List<String> tokens) {
-        return (
-                tokens.size() == 2 ||
-                tokens.size() == 3 && tokens.get(tokens.size() - 1).equals("{")
-        );
+        return tokens.size() == 1;
+    }
+
+    public void printCallInfo() {
+        System.out.println("- name: " + this.pluginName);
+        System.out.println("- params: {");
+        for (Map.Entry<String, String> entry: pluginParameters.entrySet()) {
+            System.out.println("    '" + entry.getKey() + "': '" + entry.getValue() + "',");
+        }
+        System.out.println("  }");
     }
 }

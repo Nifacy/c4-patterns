@@ -35,6 +35,11 @@ public class PluginParserPatcher implements ClassPatcher {
 
         CtMethod parseParamsMethod = ctClass.getDeclaredMethod("parseParameter", new CtClass[] { pluginDslContextType, tokensType });
         parseParamsMethod.insertBefore("""
+            if (context.patternParser != null) {
+                System.out.println("[GRISHIN] Test");
+                context.patternParser.parseBlockLine(com.patterns.syntax.PatchUtils.toTokenList(tokens));
+            }
+
             if (com.patterns.syntax.PatternPreprocessor.inPatternDefinition()) {
                 System.out.println("[PluginParserPatcher] parsed tokens: " + com.patterns.syntax.PatternPreprocessor.getLastTokens());
                 com.patterns.syntax.PatternPreprocessor.parseBlockLine(com.patterns.syntax.PatternPreprocessor.getLastTokens());

@@ -1,8 +1,6 @@
 package com.patterns.syntax;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtMethod;
+import javassist.*;
 
 import java.security.ProtectionDomain;
 
@@ -20,13 +18,35 @@ public class PluginDslContextPatcher implements ClassPatcher {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
 
+        CtClass parserType = cp.get("com.patterns.syntax.parser.PatternParser");
+        CtField parserField = new CtField(parserType, "patternParser", ctClass);
+        parserField.setModifiers(Modifier.PUBLIC);
+        ctClass.addField(parserField);
+
+        CtField classNameField = ctClass.getField("fullyQualifiedClassName");
+        classNameField.setModifiers(Modifier.clear(classNameField.getModifiers(), Modifier.FINAL));
+
+        CtField paramsField = ctClass.getField("parameters");
+        paramsField.setModifiers(Modifier.clear(paramsField.getModifiers(), Modifier.FINAL));
+
         CtMethod parseMethod = ctClass.getDeclaredMethod("end");
         parseMethod.insertBefore("""
-            if (com.patterns.syntax.PatternPreprocessor.inPatternDefinition()) {
-                System.out.println("[PluginDslContextPatcher] pattern definition end");
-                com.patterns.syntax.PatternPreprocessor.endPatternDefinition();
+            if (patternParser != null) {
+                com.patterns.syntax.parser.PluginCallInfo info = patternParser.getPluginCallInfo();
+
+                fullyQualifiedClassName = info.getName();
+                parameters = info.getParameters();
             }
         """);
+
+        for (CtConstructor constructor : ctClass.getConstructors()) {
+            constructor.insertAfter("""
+                if (patternParser == null && com.patterns.syntax.PatternCallWrapper.isWrappedPluginName(fullyQualifiedClassName)) {
+                    patternParser = new com.patterns.syntax.parser.PatternParser();
+                    patternParser.parseHeader(com.patterns.syntax.PatternCallWrapper.unwrapFromPluginName(fullyQualifiedClassName));
+                }
+            """);
+        }
 
         return ctClass.toBytecode();
     }

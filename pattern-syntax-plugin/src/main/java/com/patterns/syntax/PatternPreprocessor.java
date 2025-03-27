@@ -57,13 +57,13 @@ public class PatternPreprocessor {
             throw new RuntimeException("[PatternPreprocessor] pattern definition not started");
         }
 
-        PluginCallInfo info = currentParser.getPatternCallInfo();
-        System.err.println("[PatternPreprocessor] pattern call info:");
-        System.err.println("[PatternPreprocessor] - pluginName: " + info.getName());
-        System.err.println("[PatternPreprocessor] - parameters: {");
-        for (Map.Entry<String, String> entry : info.getParameters().entrySet()) {
-            System.err.println("[PatternPreprocessor]    '" + entry.getKey() + "': '" + entry.getValue() + "',");
-        }
+//        PluginCallInfo info = currentParser.getPatternCallInfo();
+//        System.err.println("[PatternPreprocessor] pattern call info:");
+//        System.err.println("[PatternPreprocessor] - pluginName: " + info.getName());
+//        System.err.println("[PatternPreprocessor] - parameters: {");
+//        for (Map.Entry<String, String> entry : info.getParameters().entrySet()) {
+//            System.err.println("[PatternPreprocessor]    '" + entry.getKey() + "': '" + entry.getValue() + "',");
+//        }
 
         currentParser = null;
     }
