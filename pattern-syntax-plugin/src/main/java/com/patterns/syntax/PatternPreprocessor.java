@@ -1,5 +1,8 @@
 package com.patterns.syntax;
 
+import com.patterns.syntax.parser.PatternParser;
+import com.patterns.syntax.parser.PluginCallInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +12,7 @@ public class PatternPreprocessor {
     private static final String PLUGIN_KEYWORD = "!plugin";
 
     private static List<String> lastTokens = null;
-    private static PatternCallParser currentParser = null;
+    private static PatternParser currentParser = null;
 
     public static List<String> preProcessTokens(List<String> tokens) {
         List<String> result = new ArrayList<>();
@@ -44,7 +47,7 @@ public class PatternPreprocessor {
             throw new RuntimeException("[PatternPreprocessor] pattern definition already started");
         }
 
-        currentParser = new PatternCallParser();
+        currentParser = new PatternParser();
     }
 
     public static void endPatternDefinition() {
@@ -54,13 +57,12 @@ public class PatternPreprocessor {
             throw new RuntimeException("[PatternPreprocessor] pattern definition not started");
         }
 
-        PatternCallInfo info = currentParser.getPatternCallInfo();
+        PluginCallInfo info = currentParser.getPatternCallInfo();
         System.err.println("[PatternPreprocessor] pattern call info:");
-        System.err.println("[PatternPreprocessor] - pluginName: " + info.getPluginName());
-        System.err.println("[PatternPreprocessor] - parameters: ");
-
-        for (Map.Entry<String, String> entry : info.getPluginParameters().entrySet()) {
-            System.err.println("[PatternPreprocessor]  - " + entry.getKey() + ": " + entry.getValue());
+        System.err.println("[PatternPreprocessor] - pluginName: " + info.getName());
+        System.err.println("[PatternPreprocessor] - parameters: {");
+        for (Map.Entry<String, String> entry : info.getParameters().entrySet()) {
+            System.err.println("[PatternPreprocessor]    '" + entry.getKey() + "': '" + entry.getValue() + "',");
         }
 
         currentParser = null;
