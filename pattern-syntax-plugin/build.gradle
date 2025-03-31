@@ -14,6 +14,7 @@ repositories {
 dependencies {
     implementation 'org.javassist:javassist:3.30.2-GA'
     implementation 'com.patterns:pattern-syntax-parser:local'
+    implementation 'com.patterns:pattern-lib:local'
 }
 
 java {
@@ -33,9 +34,10 @@ shadowJar {
         )
     }
 
-    exclude('org/**')
-    minimize {
-        exclude(dependency('com.patterns:pattern-syntax-parser:.*'))
+    dependencies {
+        include(dependency('org.javassist:javassist:.*'))
+        include(dependency('com.patterns:pattern-syntax-parser:.*'))
+        include(dependency('com.patterns:pattern-lib:.*'))
     }
 }
 
