@@ -10,21 +10,13 @@ java {
 
 dependencies {
     implementation 'com.github.Nifacy.structurizr:structurizr-dsl:custom-syntax-entities-v1.0.0'
+    implementation 'com.patterns:pattern-lib:local'
 }
 
 compileJava.options.encoding = 'UTF-8'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
-}
-
-task 'patternExamples.patternLib'(type: Jar) {
-    archiveFileName.set('jar-pattern-lib.jar')
-    from(sourceSets.main.output) {
-        include 'com/patterns/Pattern.class'
-        include 'com/patterns/params/**'
-    }
-    destinationDirectory.set(layout.buildDirectory.dir('libs'))
 }
 
 task 'patternExamples.reverseProxy'(type: Jar) {
@@ -68,7 +60,6 @@ task 'patternExamples.serviceRegistry'(type: Jar) {
 }
 
 task patternExamples(dependsOn: [
-        'patternExamples.patternLib',
         'patternExamples.reverseProxy',
         'patternExamples.databasePerService',
         'patternExamples.layered',
