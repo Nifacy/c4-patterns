@@ -6,8 +6,7 @@ import javassist.CtMethod;
 
 import java.security.ProtectionDomain;
 
-class TokenizerPatcher implements ClassPatcher {
-    private static final String TARGET_CLASS_NAME = "com/structurizr/dsl/Tokenizer";
+public class PluginParserPatcher implements ClassPatcher {
 
     @Override
     public byte[] patchClass(
@@ -20,14 +19,15 @@ class TokenizerPatcher implements ClassPatcher {
     ) throws Exception {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-        CtClass stringType = cp.get("java.lang.String");
-        CtMethod method = ctClass.getDeclaredMethod("tokenize", new CtClass[] { stringType });
 
-        method.insertAfter("""
-            if (com.patterns.syntax.PatternCallWrapper.isPatternHeader($_)) {
-                System.err.println("[PatternSyntaxPlugin] found pattern header: " + $_);
-                $_ = com.patterns.syntax.PatternCallWrapper.wrapPatternHeader($_);
-                System.err.println("[PatternSyntaxPlugin] wrapped pattern header: " + $_);
+        CtClass pluginDslContextType = cp.get("com.structurizr.dsl.PluginDslContext");
+        CtClass tokensType = cp.get("com.structurizr.dsl.Tokens");
+        CtMethod parseParamsMethod = ctClass.getDeclaredMethod("parseParameter", new CtClass[] { pluginDslContextType, tokensType });
+
+        parseParamsMethod.insertBefore("""
+            if (context.patternParser != null) {
+                context.patternParser.parseBlockLine(com.patterns.syntax.PatchUtils.toTokenList(tokens));
+                return;
             }
         """);
 
@@ -36,6 +36,6 @@ class TokenizerPatcher implements ClassPatcher {
 
     @Override
     public String getTargetClassName() {
-        return TARGET_CLASS_NAME;
+        return "com/structurizr/dsl/PluginParser";
     }
 }

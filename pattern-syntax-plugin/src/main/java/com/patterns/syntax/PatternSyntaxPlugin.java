@@ -14,7 +14,9 @@ public class PatternSyntaxPlugin {
     static class StructurizrTransformer implements ClassFileTransformer {
 
         private static final List<ClassPatcher> patchers = List.of(
-                new TokenizerPatcher()
+                new TokenizerPatcher(),
+                new PluginParserPatcher(),
+                new PluginDslContextPatcher()
         );
 
         @Override
