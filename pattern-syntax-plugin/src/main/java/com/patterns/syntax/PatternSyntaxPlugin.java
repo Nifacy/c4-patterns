@@ -16,8 +16,7 @@ public class PatternSyntaxPlugin {
         private static final List<ClassPatcher> patchers = List.of(
                 new TokenizerPatcher(),
                 new PluginParserPatcher(),
-                new PluginDslContextPatcher(),
-                new StructurizrDslParserPatcher()
+                new PluginDslContextPatcher()
         );
 
         @Override

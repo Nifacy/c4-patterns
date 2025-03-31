@@ -25,9 +25,9 @@ class TokenizerPatcher implements ClassPatcher {
 
         method.insertAfter("""
             if (com.patterns.syntax.PatternCallWrapper.isPatternHeader($_)) {
-                System.out.println("[PatternCallWrapper] pattern header");
+                System.err.println("[PatternSyntaxPlugin] found pattern header: " + $_);
                 $_ = com.patterns.syntax.PatternCallWrapper.wrapPatternHeader($_);
-                System.out.println("[PatternCallWrapper] wrapped pattern call: " + $_);
+                System.err.println("[PatternSyntaxPlugin] wrapped pattern header: " + $_);
             }
         """);
 
