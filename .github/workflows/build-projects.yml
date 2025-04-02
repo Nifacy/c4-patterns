@@ -1,0 +1,17 @@
+name: Build Projects
+
+on:
+  push:
+  - dev.add-build-project-action
+
+jobs:
+  build-pattern-lib:
+    name: Build 'pattern-lib' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: action/checkout@v4
+
+    - name: List workspace content
+      run: ls -a .
