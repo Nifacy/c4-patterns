@@ -25,7 +25,7 @@ jobs:
         build-scan-terms-of-use-agree: 'yes'
 
     - name: Run build
-      run: gradle build
+      run: gradle -Dmaven.repo.local=./repo publish-local build
       working-directory: pattern-lib
 
     - name: Publish artifacts
