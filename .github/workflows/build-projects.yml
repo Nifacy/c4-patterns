@@ -25,12 +25,19 @@ jobs:
         build-scan-terms-of-use-agree: 'yes'
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=./repo publish-local build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publish-local build
       working-directory: pattern-lib
 
-    - name: Publish artifacts
+    - name: Publish jar file
       uses: actions/upload-artifact@v4
       with:
         name: pattern-lib
         path: pattern-lib/build/libs/*.jar
+        if-no-files-found: error
+
+    - name: Publish maven package
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lib-package
+        path: ${{ github.workspace }}/repo
         if-no-files-found: error
