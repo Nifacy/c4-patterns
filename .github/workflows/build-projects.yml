@@ -68,7 +68,7 @@ jobs:
         path: ${{ github.workspace }}/pattern-lib-package
 
     - name: Install 'pattern-lib' package in local maven repository
-      run: rsync -av ${{ github.workspace }}/pattern-lib-package ${{ github.workspace }}/repo
+      run: rsync -av ${{ github.workspace }}/pattern-lib-package/ ${{ github.workspace }}/repo/
 
     - name: Display local maven repository
       run: ls -R ${{ github.workspace }}/repo
