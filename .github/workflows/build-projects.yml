@@ -41,3 +41,41 @@ jobs:
         name: pattern-lib-package
         path: ${{ github.workspace }}/repo
         if-no-files-found: error
+
+  build-examples:
+    name: Build 'examples' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: examples
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Download 'pattern-lib' package
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-lib-package
+        path: ${{ github.workspace }}/pattern-lib-package
+
+    - name: Install 'pattern-lib' package in local maven repository
+      run: rsync ${{ github.workspace }}/pattern-lib-package ${{ github.workspace }}/repo
+
+    - name: Run build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo build
+      working-directory: examples
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lib
+        path: examples/build/workspaces/*
+        if-no-files-found: error
