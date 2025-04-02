@@ -80,6 +80,6 @@ jobs:
     - name: Publish jar file
       uses: actions/upload-artifact@v4
       with:
-        name: pattern-lib
+        name: examples
         path: examples/build/workspaces/*
         if-no-files-found: error
