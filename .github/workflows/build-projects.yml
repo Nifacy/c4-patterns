@@ -45,6 +45,7 @@ jobs:
   build-examples:
     name: Build 'examples' project
     runs-on: ubuntu-latest
+    needs: build-pattern-lib
 
     steps:
     - name: Checkout code
