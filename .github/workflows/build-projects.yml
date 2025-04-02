@@ -28,5 +28,9 @@ jobs:
       run: gradle build
       working-directory: pattern-lib
 
-    - name: List workspace content
-      run: ls -a .
+    - name: Publish artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lib
+        path: pattern-lib/build/libs/*.jar
+        if-no-files-found: error
