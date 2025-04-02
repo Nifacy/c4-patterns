@@ -25,7 +25,7 @@ jobs:
         build-scan-terms-of-use-agree: 'yes'
 
     - name: Run build
-      run: ./gradlew build
+      run: gradle build
       working-directory: pattern-lib
 
     - name: List workspace content
