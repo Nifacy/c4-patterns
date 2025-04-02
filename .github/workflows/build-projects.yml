@@ -159,7 +159,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: examples
+        sparse-checkout: pattern-syntax-plugin
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
