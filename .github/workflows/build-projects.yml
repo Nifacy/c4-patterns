@@ -2,7 +2,8 @@ name: Build Projects
 
 on:
   push:
-  - dev.add-build-project-action
+    branches:
+    - dev.add-build-project-action
 
 jobs:
   build-pattern-lib:
