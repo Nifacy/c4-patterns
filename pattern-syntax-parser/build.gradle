@@ -14,18 +14,31 @@ java {
 
 publishing {
     publications {
-        localMaven(MavenPublication) {
+        debug(MavenPublication) {
             groupId = group
             artifactId = rootProject.name
-            version = 'local'
+            version = 'debug'
+            from components.java
+        }
+
+        release(MavenPublication) {
+            groupId = group
+            artifactId = rootProject.name
+            version = version
             from components.java
         }
     }
+
     repositories {
         mavenLocal()
-    }
-}
 
-tasks.register('publish-local') {
-    dependsOn 'publishLocalMavenPublicationToMavenLocal'
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Nifacy/structurizr-templates")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+            }
+        }
+    }
 }
