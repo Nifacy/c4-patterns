@@ -197,3 +197,36 @@ jobs:
         name: pattern-syntax-plugin
         path: pattern-syntax-plugin/build/libs/*
         if-no-files-found: error
+
+  build-vs-code-extension:
+    name: Build 'structurizr-templates-extension' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: structurizr-templates-extension
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.17.0'
+
+    - name: Install dependencies
+      run: npm install
+      working-directory: structurizr-templates-extension
+
+    - name: Install VS Code CLI
+      run: npm install -g @vscode/vsce
+      working-directory: structurizr-templates-extension
+
+    - name: Build VSIX package
+      run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/extension.vsix
+      working-directory: structurizr-templates-extension
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: structurizr-templates-extension
+        path: ${{ github.workspace }}/extension.vsix
