@@ -25,7 +25,7 @@ jobs:
         build-scan-terms-of-use-agree: 'yes'
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publish-local build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
       working-directory: pattern-lib
 
     - name: Publish jar file
@@ -74,7 +74,7 @@ jobs:
       run: ls -R ${{ github.workspace }}/repo
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-lib.version=debug build
       working-directory: examples
 
     - name: Publish jar file
@@ -131,7 +131,7 @@ jobs:
         build-scan-terms-of-use-agree: 'yes'
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publish-local build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
       working-directory: pattern-syntax-parser
 
     - name: Publish jar file
@@ -188,7 +188,7 @@ jobs:
       run: rsync -av ${{ github.workspace }}/pattern-syntax-parser/ ${{ github.workspace }}/repo/
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-lib.version=debug -Pdeps.pattern-syntax-parser.version=debug build
       working-directory: pattern-syntax-plugin
 
     - name: Publish jar file
