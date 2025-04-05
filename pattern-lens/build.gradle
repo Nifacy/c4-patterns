@@ -3,6 +3,8 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
+version = '1.0'
+
 repositories {
     mavenCentral()
 }
@@ -30,7 +32,7 @@ shadowJar {
                 'Main-Class': 'com.patterns.lens.App'
         )
     }
-    archiveFileName = 'pattern-lens.jar'
+    archiveFileName = "${rootProject.name}-${project.version}.jar"
 }
 
 build {
