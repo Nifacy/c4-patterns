@@ -3,7 +3,7 @@ plugins {
     id 'com.gradleup.shadow' version '8.3.5'
 }
 
-def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: 'v1.0'
+def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: '1.0'
 
 java {
     toolchain {
