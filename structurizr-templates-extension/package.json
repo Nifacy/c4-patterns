@@ -2,7 +2,7 @@
   "name": "structurizr-templates-extension",
   "displayName": "Structurizr templates",
   "description": "VS Code extension for structurizr templates support",
-  "version": "0.0.1",
+  "version": "1.0",
   "engines": {
     "vscode": "^1.96.0"
   },
