@@ -7,7 +7,7 @@ permissions:
 on:
   push:
     branches:
-    - dev.add-release-build-workflow
+    - main
 
 jobs:
   build-pattern-lib:
