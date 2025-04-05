@@ -3,15 +3,31 @@ plugins {
     id 'com.gradleup.shadow' version '8.3.5'
 }
 
+def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: 'v1.0'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url = uri("https://jitpack.io") }
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/Nifacy/structurizr-templates")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+        }
+    }
+}
+
 dependencies {
     implementation 'com.github.Nifacy.structurizr:structurizr-dsl:custom-syntax-entities-v1.0.0'
-    implementation 'com.patterns:pattern-lib:local'
+    implementation "com.patterns:pattern-lib:${patternLibVersion}"
 }
 
 compileJava.options.encoding = 'UTF-8'
@@ -25,7 +41,7 @@ task 'patternExamples.reverseProxy'(type: com.github.jengelman.gradle.plugins.sh
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency('com.patterns:pattern-lib:local'))
+        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
@@ -38,7 +54,7 @@ task 'patternExamples.databasePerService'(type: com.github.jengelman.gradle.plug
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency('com.patterns:pattern-lib:local'))
+        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
@@ -51,7 +67,7 @@ task 'patternExamples.layered'(type: com.github.jengelman.gradle.plugins.shadow.
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency('com.patterns:pattern-lib:local'))
+        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
@@ -64,7 +80,7 @@ task 'patternExamples.saga'(type: com.github.jengelman.gradle.plugins.shadow.tas
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency('com.patterns:pattern-lib:local'))
+        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
@@ -77,7 +93,7 @@ task 'patternExamples.serviceRegistry'(type: com.github.jengelman.gradle.plugins
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency('com.patterns:pattern-lib:local'))
+        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {

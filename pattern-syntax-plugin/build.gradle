@@ -6,15 +6,26 @@ plugins {
 group = 'com.patterns'
 version = '1.0'
 
+def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: 'v1.0'
+def patternSyntaxParserVersion = project.findProperty("deps.pattern-syntax-parser.version") ?: 'v1.0'
+
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/Nifacy/structurizr-templates")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+        }
+    }
 }
 
 dependencies {
     implementation 'org.javassist:javassist:3.30.2-GA'
-    implementation 'com.patterns:pattern-syntax-parser:local'
-    implementation 'com.patterns:pattern-lib:local'
+    implementation "com.patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
+    implementation "com.patterns:pattern-lib:${patternLibVersion}"
 }
 
 java {
