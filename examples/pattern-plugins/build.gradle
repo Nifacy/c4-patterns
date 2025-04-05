@@ -14,7 +14,6 @@ java {
 repositories {
     mavenCentral()
     mavenLocal()
-    maven { url = uri("https://jitpack.io") }
     maven {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/Nifacy/structurizr-templates")
@@ -26,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Nifacy.structurizr:structurizr-dsl:custom-syntax-entities-v1.0.0'
+    implementation 'com.structurizr:structurizr-dsl:3.2.1'
     implementation "com.patterns:pattern-lib:${patternLibVersion}"
 }
 
