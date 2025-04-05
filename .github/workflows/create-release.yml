@@ -1,5 +1,8 @@
 name: Create Release
 
+permissions:
+  packages: write
+
 on:
   push:
     branches:
