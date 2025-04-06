@@ -21,15 +21,15 @@ class TokenizerPatcher implements ClassPatcher {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
         CtClass stringType = cp.get("java.lang.String");
-        CtMethod method = ctClass.getDeclaredMethod("tokenize", new CtClass[] { stringType });
+        CtMethod method = ctClass.getDeclaredMethod("tokenize", new CtClass[]{stringType});
 
         method.insertAfter("""
-            if (io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.isPatternHeader($_)) {
-                System.err.println("[PatternSyntaxPlugin] found pattern header: " + $_);
-                $_ = io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.wrapPatternHeader($_);
-                System.err.println("[PatternSyntaxPlugin] wrapped pattern header: " + $_);
-            }
-        """);
+                    if (io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.isPatternHeader($_)) {
+                        System.err.println("[PatternSyntaxPlugin] found pattern header: " + $_);
+                        $_ = io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.wrapPatternHeader($_);
+                        System.err.println("[PatternSyntaxPlugin] wrapped pattern header: " + $_);
+                    }
+                """);
 
         return ctClass.toBytecode();
     }

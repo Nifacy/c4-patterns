@@ -44,7 +44,7 @@ public class PatternSyntaxPlugin {
                         return result;
                     }
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Failed to patch '" + className + "'", e);
             }

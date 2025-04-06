@@ -31,21 +31,21 @@ public class PluginDslContextPatcher implements ClassPatcher {
 
         CtMethod parseMethod = ctClass.getDeclaredMethod("end");
         parseMethod.insertBefore("""
-            if (patternParser != null) {
-                io.github.nifacy.c4patterns.syntax.parser.PluginCallInfo info = patternParser.getPluginCallInfo();
-
-                fullyQualifiedClassName = info.getName();
-                parameters = info.getParameters();
-            }
-        """);
+                    if (patternParser != null) {
+                        io.github.nifacy.c4patterns.syntax.parser.PluginCallInfo info = patternParser.getPluginCallInfo();
+                
+                        fullyQualifiedClassName = info.getName();
+                        parameters = info.getParameters();
+                    }
+                """);
 
         for (CtConstructor constructor : ctClass.getConstructors()) {
             constructor.insertAfter("""
-                if (patternParser == null && io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.isWrappedPluginName(fullyQualifiedClassName)) {
-                    patternParser = new io.github.nifacy.c4patterns.syntax.parser.PatternParser();
-                    patternParser.parseHeader(io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.unwrapFromPluginName(fullyQualifiedClassName));
-                }
-            """);
+                        if (patternParser == null && io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.isWrappedPluginName(fullyQualifiedClassName)) {
+                            patternParser = new io.github.nifacy.c4patterns.syntax.parser.PatternParser();
+                            patternParser.parseHeader(io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.unwrapFromPluginName(fullyQualifiedClassName));
+                        }
+                    """);
         }
 
         return ctClass.toBytecode();

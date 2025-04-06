@@ -24,8 +24,8 @@ public class SchemaParser<T extends Schema> implements Parser<T> {
                 String fieldPrefix;
 
                 if ("".equals(prefix)) {
-                    fieldPrefix = field.getName(); 
-                }else {
+                    fieldPrefix = field.getName();
+                } else {
                     fieldPrefix = prefix + "." + field.getName();
                 }
 

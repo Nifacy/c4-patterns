@@ -1,63 +1,38 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-
-import io.github.nifacy.c4patterns.lib.params.Schema;
-import io.github.nifacy.c4patterns.lib.Pattern;
 import com.structurizr.dsl.IdentifiersRegister;
 import com.structurizr.dsl.StructurizrDslParser;
 import com.structurizr.dsl.StructurizrDslPluginContext;
 import com.structurizr.model.Container;
 import com.structurizr.model.Element;
+import io.github.nifacy.c4patterns.lib.Pattern;
+import io.github.nifacy.c4patterns.lib.params.Schema;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 public class ServiceRegistry extends Pattern<ServiceRegistry.Arguments> {
 
-    public static class ArgumentQueryItem implements Schema {
-
-        public String source;
-        public String destination;
-    }
-
-    public static class Arguments implements Schema {
-
-        public String registry;
-        public String connectedServices;
-        public List<ArgumentQueryItem> query;
-    }
-
-    private class RegistryQuery {
-
-        public String sourceId;
-        public String destinationId;
-
-        public RegistryQuery(String sourceId, String destinationId) {
-            this.sourceId = sourceId;
-            this.destinationId = destinationId;
-        }
-    }
-
     public static Optional<String> getDocumentation() {
-        StringBuilder builder = new StringBuilder();
 
-        builder.append("### Saga\n");
-        builder.append("\n");
-        builder.append("#### Проблема\n");
-        builder.append("Микросервисной архитектуре свойствена работа с огромным количеством сервисов и их реплик.\n");
-        builder.append("При использовании таких протоколов, как HTTP, необходимо знать \"местоположение\" сервиса\n");
-        builder.append("(в данном случае это IP и порт), которому необходимо отправлять запрос.\n");
-        builder.append("\n");
-        builder.append("Однако, в микросервисной архитектуре сервисы постоянно создаются, удаляются, могут упасть и т. д. То есть, набор сервисов динамичный и изменяется с течением времени.\n");
-        builder.append("\n");
-        builder.append("#### Решение\n");
-        builder.append("Данный паттерн предлагает сделать отдельную сущность - Service Registry,\n");
-        builder.append("которая будет играть роль хранилища информации об активных сервисах.\n");
-        builder.append("При старте работы сервисы отправляют запрос в Service Registry на добавление.\n");
-        builder.append("После чего, Service Registry может отправлять запросы на проверку работоспособности сервисов,\n");
-        builder.append("например, используя паттерн Healtcheck API.\n");
-        builder.append("Либо же сервисы сами могут отсылать запрос, чтобы уведомить Registry о том, что они работоспособны.\n");
+        String builder = "### Saga\n" +
+                "\n" +
+                "#### Проблема\n" +
+                "Микросервисной архитектуре свойствена работа с огромным количеством сервисов и их реплик.\n" +
+                "При использовании таких протоколов, как HTTP, необходимо знать \"местоположение\" сервиса\n" +
+                "(в данном случае это IP и порт), которому необходимо отправлять запрос.\n" +
+                "\n" +
+                "Однако, в микросервисной архитектуре сервисы постоянно создаются, удаляются, могут упасть и т. д. То есть, набор сервисов динамичный и изменяется с течением времени.\n" +
+                "\n" +
+                "#### Решение\n" +
+                "Данный паттерн предлагает сделать отдельную сущность - Service Registry,\n" +
+                "которая будет играть роль хранилища информации об активных сервисах.\n" +
+                "При старте работы сервисы отправляют запрос в Service Registry на добавление.\n" +
+                "После чего, Service Registry может отправлять запросы на проверку работоспособности сервисов,\n" +
+                "например, используя паттерн Healtcheck API.\n" +
+                "Либо же сервисы сами могут отсылать запрос, чтобы уведомить Registry о том, что они работоспособны.\n";
 
-        return Optional.of(builder.toString());
+        return Optional.of(builder);
     }
 
     @Override
@@ -119,5 +94,29 @@ public class ServiceRegistry extends Pattern<ServiceRegistry.Arguments> {
             throw new java.lang.RuntimeException("[error] [db per service] element with id '" + elementId + "' not found");
         }
         return foundElement;
+    }
+
+    public static class ArgumentQueryItem implements Schema {
+
+        public String source;
+        public String destination;
+    }
+
+    public static class Arguments implements Schema {
+
+        public String registry;
+        public String connectedServices;
+        public List<ArgumentQueryItem> query;
+    }
+
+    private class RegistryQuery {
+
+        public String sourceId;
+        public String destinationId;
+
+        public RegistryQuery(String sourceId, String destinationId) {
+            this.sourceId = sourceId;
+            this.destinationId = destinationId;
+        }
     }
 }

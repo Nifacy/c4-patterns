@@ -43,7 +43,7 @@ task 'patternExamples.reverseProxy'(type: com.github.jengelman.gradle.plugins.sh
         include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
-    from (sourceSets.main.output) {
+    from(sourceSets.main.output) {
         include 'ReverseProxy*.class'
     }
 }
@@ -56,7 +56,7 @@ task 'patternExamples.databasePerService'(type: com.github.jengelman.gradle.plug
         include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
-    from (sourceSets.main.output) {
+    from(sourceSets.main.output) {
         include 'DatabasePerService*.class'
     }
 }
@@ -69,7 +69,7 @@ task 'patternExamples.layered'(type: com.github.jengelman.gradle.plugins.shadow.
         include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
-    from (sourceSets.main.output) {
+    from(sourceSets.main.output) {
         include 'Layered*.class'
     }
 }
@@ -82,7 +82,7 @@ task 'patternExamples.saga'(type: com.github.jengelman.gradle.plugins.shadow.tas
         include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
-    from (sourceSets.main.output) {
+    from(sourceSets.main.output) {
         include 'Saga*.class'
     }
 }
@@ -95,7 +95,7 @@ task 'patternExamples.serviceRegistry'(type: com.github.jengelman.gradle.plugins
         include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
-    from (sourceSets.main.output) {
+    from(sourceSets.main.output) {
         include 'ServiceRegistry*.class'
     }
 }

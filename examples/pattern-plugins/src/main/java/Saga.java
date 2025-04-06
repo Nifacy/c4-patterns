@@ -1,9 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import io.github.nifacy.c4patterns.lib.params.Schema;
-import io.github.nifacy.c4patterns.lib.Pattern;
 import com.structurizr.dsl.IdentifiersRegister;
 import com.structurizr.dsl.StructurizrDslParser;
 import com.structurizr.dsl.StructurizrDslPluginContext;
@@ -12,55 +6,36 @@ import com.structurizr.model.Element;
 import com.structurizr.view.AutomaticLayout;
 import com.structurizr.view.DynamicView;
 import com.structurizr.view.ViewSet;
+import io.github.nifacy.c4patterns.lib.Pattern;
+import io.github.nifacy.c4patterns.lib.params.Schema;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class Saga extends Pattern<Saga.Arguments> {
 
-    public static class ArgumentActionItem implements Schema {
-
-        public String service;
-        public String command;
-        public String onError;
-    }
-
-    public static class Arguments implements Schema {
-
-        public String orchestrator;
-        public List<ArgumentActionItem> item;
-    }
-
-    private class SagaItem {
-
-        public Container container;
-        public String description;
-
-        public SagaItem(Container container, String description) {
-            this.container = container;
-            this.description = description;
-        }
-    }
-
     public static Optional<String> getDocumentation() {
-        StringBuilder builder = new StringBuilder();
 
-        builder.append("### Saga\n");
-        builder.append("Суть паттерна заключается в организации транзакций, при этом придерживаясь концепции микросервисов.\n");
-        builder.append("\n");
-        builder.append("#### Проблема\n");
-        builder.append("У нас есть много отдельных сервисов, каждый из которых ответственен за часть функциональности.\n");
-        builder.append("Однако, в некоторых случаях требуется реализовать цепочку вызовов, затрагивающую несколько сервисов,\n");
-        builder.append("при этом обеспечив согласованность - если на каком-то этапе произошла ошибка,\n");
-        builder.append("то система должна вернуться к состоянию, в котором она была до выполнения транзакции.\n");
-        builder.append("\n");
-        builder.append("#### Решение\n");
-        builder.append("Паттерн описывает вариацию Orchestration-based saga.\n");
-        builder.append("При таком подходе мы добавляем еще один сервис, отвечающий за транзакцию.\n");
-        builder.append("Его называют saga оркестратором.\n");
-        builder.append("\n");
-        builder.append("Его работа заключается в отправке команд другим сервисам в определенном порядке и\n");
-        builder.append("отправке обратных команд при возникновении ошибки. Вариант более приоритетный,\n");
-        builder.append("так как нет мешанины, нет размазывания логики, все находится в отдельном сервисе.\n");
+        String builder = "### Saga\n" +
+                "Суть паттерна заключается в организации транзакций, при этом придерживаясь концепции микросервисов.\n" +
+                "\n" +
+                "#### Проблема\n" +
+                "У нас есть много отдельных сервисов, каждый из которых ответственен за часть функциональности.\n" +
+                "Однако, в некоторых случаях требуется реализовать цепочку вызовов, затрагивающую несколько сервисов,\n" +
+                "при этом обеспечив согласованность - если на каком-то этапе произошла ошибка,\n" +
+                "то система должна вернуться к состоянию, в котором она была до выполнения транзакции.\n" +
+                "\n" +
+                "#### Решение\n" +
+                "Паттерн описывает вариацию Orchestration-based saga.\n" +
+                "При таком подходе мы добавляем еще один сервис, отвечающий за транзакцию.\n" +
+                "Его называют saga оркестратором.\n" +
+                "\n" +
+                "Его работа заключается в отправке команд другим сервисам в определенном порядке и\n" +
+                "отправке обратных команд при возникновении ошибки. Вариант более приоритетный,\n" +
+                "так как нет мешанины, нет размазывания логики, все находится в отдельном сервисе.\n";
 
-        return Optional.of(builder.toString());
+        return Optional.of(builder);
     }
 
     @Override
@@ -136,5 +111,29 @@ public class Saga extends Pattern<Saga.Arguments> {
             throw new java.lang.RuntimeException("[error] [db per service] element with id '" + elementId + "' not found");
         }
         return foundElement;
+    }
+
+    public static class ArgumentActionItem implements Schema {
+
+        public String service;
+        public String command;
+        public String onError;
+    }
+
+    public static class Arguments implements Schema {
+
+        public String orchestrator;
+        public List<ArgumentActionItem> item;
+    }
+
+    private class SagaItem {
+
+        public Container container;
+        public String description;
+
+        public SagaItem(Container container, String description) {
+            this.container = container;
+            this.description = description;
+        }
     }
 }

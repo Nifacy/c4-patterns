@@ -83,7 +83,7 @@ public class App {
     private static Optional<Class> tryLoadClass(ClassLoader loader, String className) {
         try {
             return Optional.of(loader.loadClass(className));
-        } catch(ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             return Optional.empty();
         }
     }
@@ -110,6 +110,6 @@ public class App {
         }
 
         System.err.println("[log] initialize loader ...");
-        return new URLClassLoader(jarUrls.toArray(new URL[0]));        
+        return new URLClassLoader(jarUrls.toArray(new URL[0]));
     }
 }

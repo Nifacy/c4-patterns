@@ -1,7 +1,3 @@
-import java.util.Optional;
-
-import io.github.nifacy.c4patterns.lib.params.Schema;
-import io.github.nifacy.c4patterns.lib.Pattern;
 import com.structurizr.dsl.IdentifiersRegister;
 import com.structurizr.dsl.StructurizrDslParser;
 import com.structurizr.dsl.StructurizrDslPluginContext;
@@ -9,27 +5,23 @@ import com.structurizr.model.Container;
 import com.structurizr.model.Element;
 import com.structurizr.model.Model;
 import com.structurizr.model.Relationship;
+import io.github.nifacy.c4patterns.lib.Pattern;
+import io.github.nifacy.c4patterns.lib.params.Schema;
+
+import java.util.Optional;
 
 public class DatabasePerService extends Pattern<DatabasePerService.Arguments> {
 
-    public static class Arguments implements Schema {
-
-        public String service;
-        public String database;
-        public Optional<String> dataDescription;
-    }
-
     public static Optional<String> getDocumentation() {
-        StringBuilder builder = new StringBuilder();
 
-        builder.append("### Database per service\n");
-        builder.append("Паттерн используется в контексте микросервисной архитектуры.\n");
-        builder.append("Согласно этому паттерну, каждый сервис имеет свою базу данных.\n");
-        builder.append("Такой подход позволяет горизонтально масштабировать сервисы независимо друг от друга,\n");
-        builder.append("делать сами базы данных независимыми (например, каждый сервис может использую такую базу данных,\n");
-        builder.append("которая будет более подходящей для его задачи).\n");
+        String builder = "### Database per service\n" +
+                "Паттерн используется в контексте микросервисной архитектуры.\n" +
+                "Согласно этому паттерну, каждый сервис имеет свою базу данных.\n" +
+                "Такой подход позволяет горизонтально масштабировать сервисы независимо друг от друга,\n" +
+                "делать сами базы данных независимыми (например, каждый сервис может использую такую базу данных,\n" +
+                "которая будет более подходящей для его задачи).\n";
 
-        return Optional.of(builder.toString());
+        return Optional.of(builder);
     }
 
     @Override
@@ -59,7 +51,7 @@ public class DatabasePerService extends Pattern<DatabasePerService.Arguments> {
 
                     throw new java.lang.RuntimeException(
                             "[error] [db per service] Database '" + dbName
-                            + "' is already used by '" + sourceName + "'"
+                                    + "' is already used by '" + sourceName + "'"
                     );
                 }
             }
@@ -80,5 +72,12 @@ public class DatabasePerService extends Pattern<DatabasePerService.Arguments> {
             throw new java.lang.RuntimeException("[error] [db per service] element with id '" + elementId + "' not found");
         }
         return foundElement;
+    }
+
+    public static class Arguments implements Schema {
+
+        public String service;
+        public String database;
+        public Optional<String> dataDescription;
     }
 }
