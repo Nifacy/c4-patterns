@@ -25,12 +25,12 @@ class DocumentationGetter {
 
             throw new IllegalArgumentException(
                     "Plugin class " + pluginClass.getName() + " broken: "
-                    + "method 'getDocumentation' has invalid signature"
+                            + "method 'getDocumentation' has invalid signature"
             );
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException(
                     "Plugin class " + pluginClass.getName() + " broken: "
-                    + e.getMessage()
+                            + e.getMessage()
             );
         }
     }
