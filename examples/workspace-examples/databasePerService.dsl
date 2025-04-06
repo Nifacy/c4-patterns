@@ -13,13 +13,13 @@ workspace {
         user -> orderApp "Creates order"
         orderApp -> paymentApp "Sends payment request"
 
-        $pattern com.patterns.DatabasePerService {
+        $pattern DatabasePerService {
             service          orderApp
             database         paymentDatabase
             dataDescription  "order data"
         }
 
-        $pattern com.patterns.DatabasePerService {
+        $pattern DatabasePerService {
             service          paymentApp
             database         paymentDatabase
             dataDescription  "payment data"

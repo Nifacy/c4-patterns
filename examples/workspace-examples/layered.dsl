@@ -25,7 +25,7 @@ workspace "Layered architecture" {
 
         // consumerFrontend -> databaseMain "Bad relationship"
 
-        $pattern com.patterns.Layered {
+        $pattern Layered {
             layer.0.name "Frontend Layer"
             layer.0.elements consumerFrontend,sellerFrontend
 

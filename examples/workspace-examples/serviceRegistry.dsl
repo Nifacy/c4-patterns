@@ -16,7 +16,7 @@ workspace {
             orderService -> paymentService "Sends payment request"
             orderService -> inventoryService "Checks items availability"
 
-            $pattern com.patterns.ServiceRegistry {
+            $pattern ServiceRegistry {
                 registry             serviceRegistry
                 connectedServices    paymentService,inventoryService
 

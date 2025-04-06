@@ -26,7 +26,7 @@ workspace "Reverse Proxy" {
         webApp -> db2 "Requests users"
         app3 -> db2 "ABOBA"
 
-       $pattern com.patterns.ReverseProxy {
+       $pattern ReverseProxy {
            target webApp
        }
     }
