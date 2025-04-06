@@ -1,4 +1,4 @@
-package com.patterns.syntax;
+package io.github.nifacy.c4patterns.syntax.plugin;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;

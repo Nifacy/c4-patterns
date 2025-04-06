@@ -1,4 +1,4 @@
-package com.patterns.syntax;
+package io.github.nifacy.c4patterns.syntax.plugin;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -24,9 +24,9 @@ class TokenizerPatcher implements ClassPatcher {
         CtMethod method = ctClass.getDeclaredMethod("tokenize", new CtClass[] { stringType });
 
         method.insertAfter("""
-            if (com.patterns.syntax.PatternCallWrapper.isPatternHeader($_)) {
+            if (io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.isPatternHeader($_)) {
                 System.err.println("[PatternSyntaxPlugin] found pattern header: " + $_);
-                $_ = com.patterns.syntax.PatternCallWrapper.wrapPatternHeader($_);
+                $_ = io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.wrapPatternHeader($_);
                 System.err.println("[PatternSyntaxPlugin] wrapped pattern header: " + $_);
             }
         """);

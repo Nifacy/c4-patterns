@@ -1,4 +1,4 @@
-package com.patterns.syntax;
+package io.github.nifacy.c4patterns.syntax.plugin;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -26,7 +26,7 @@ public class PluginParserPatcher implements ClassPatcher {
 
         parseParamsMethod.insertBefore("""
             if (context.patternParser != null) {
-                context.patternParser.parseBlockLine(com.patterns.syntax.PatchUtils.toTokenList(tokens));
+                context.patternParser.parseBlockLine(io.github.nifacy.c4patterns.syntax.plugin.PatchUtils.toTokenList(tokens));
                 return;
             }
         """);

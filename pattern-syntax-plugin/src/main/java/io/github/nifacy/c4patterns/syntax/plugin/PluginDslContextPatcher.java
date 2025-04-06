@@ -1,4 +1,4 @@
-package com.patterns.syntax;
+package io.github.nifacy.c4patterns.syntax.plugin;
 
 import javassist.*;
 
@@ -18,7 +18,7 @@ public class PluginDslContextPatcher implements ClassPatcher {
         ClassPool cp = ClassPool.getDefault();
         CtClass ctClass = cp.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
 
-        CtClass parserType = cp.get("com.patterns.syntax.parser.PatternParser");
+        CtClass parserType = cp.get("io.github.nifacy.c4patterns.syntax.parser.PatternParser");
         CtField parserField = new CtField(parserType, "patternParser", ctClass);
         parserField.setModifiers(Modifier.PUBLIC);
         ctClass.addField(parserField);
@@ -32,7 +32,7 @@ public class PluginDslContextPatcher implements ClassPatcher {
         CtMethod parseMethod = ctClass.getDeclaredMethod("end");
         parseMethod.insertBefore("""
             if (patternParser != null) {
-                com.patterns.syntax.parser.PluginCallInfo info = patternParser.getPluginCallInfo();
+                io.github.nifacy.c4patterns.syntax.parser.PluginCallInfo info = patternParser.getPluginCallInfo();
 
                 fullyQualifiedClassName = info.getName();
                 parameters = info.getParameters();
@@ -41,9 +41,9 @@ public class PluginDslContextPatcher implements ClassPatcher {
 
         for (CtConstructor constructor : ctClass.getConstructors()) {
             constructor.insertAfter("""
-                if (patternParser == null && com.patterns.syntax.PatternCallWrapper.isWrappedPluginName(fullyQualifiedClassName)) {
-                    patternParser = new com.patterns.syntax.parser.PatternParser();
-                    patternParser.parseHeader(com.patterns.syntax.PatternCallWrapper.unwrapFromPluginName(fullyQualifiedClassName));
+                if (patternParser == null && io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.isWrappedPluginName(fullyQualifiedClassName)) {
+                    patternParser = new io.github.nifacy.c4patterns.syntax.parser.PatternParser();
+                    patternParser.parseHeader(io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper.unwrapFromPluginName(fullyQualifiedClassName));
                 }
             """);
         }

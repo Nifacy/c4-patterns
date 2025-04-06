@@ -1,4 +1,4 @@
-package com.patterns.syntax;
+package io.github.nifacy.c4patterns.syntax.plugin;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -24,8 +24,8 @@ repositories {
 
 dependencies {
     implementation 'org.javassist:javassist:3.30.2-GA'
-    implementation "com.patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
-    implementation "com.patterns:pattern-lib:${patternLibVersion}"
+    implementation "io.github.nifacy.c4patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
+    implementation "io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"
 }
 
 java {
@@ -41,7 +41,7 @@ shadowJar {
 
     manifest {
         attributes(
-                'Premain-Class': 'com.patterns.syntax.PatternSyntaxPlugin',
+                'Premain-Class': 'io.github.nifacy.c4patterns.syntax.plugin.PatternSyntaxPlugin',
                 'Can-Redefine-Classes': 'true',
                 'Can-Retransform-Classes': 'true'
         )
@@ -49,8 +49,8 @@ shadowJar {
 
     dependencies {
         include(dependency('org.javassist:javassist:.*'))
-        include(dependency('com.patterns:pattern-syntax-parser:.*'))
-        include(dependency('com.patterns:pattern-lib:.*'))
+        include(dependency('io.github.nifacy.c4patterns:pattern-syntax-parser:.*'))
+        include(dependency('io.github.nifacy.c4patterns:pattern-lib:.*'))
     }
 }
 
