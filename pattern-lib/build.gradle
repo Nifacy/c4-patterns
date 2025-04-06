@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.patterns'
+group = 'io.github.nifacy.c4patterns'
 version = '1.0'
 
 repositories {

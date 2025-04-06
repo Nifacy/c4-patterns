@@ -1,4 +1,4 @@
-package com.patterns.params;
+package io.github.nifacy.c4patterns.params;
 
 import java.util.Optional;
 import java.util.function.Function;

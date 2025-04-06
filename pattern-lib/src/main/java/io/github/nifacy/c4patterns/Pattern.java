@@ -1,13 +1,13 @@
-package com.patterns;
+package io.github.nifacy.c4patterns;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
-import com.patterns.params.ParseError;
-import com.patterns.params.Parser;
-import com.patterns.params.ParserFactory;
-import com.patterns.params.Schema;
+import io.github.nifacy.c4patterns.params.ParseError;
+import io.github.nifacy.c4patterns.params.Parser;
+import io.github.nifacy.c4patterns.params.ParserFactory;
+import io.github.nifacy.c4patterns.params.Schema;
 import com.structurizr.dsl.StructurizrDslPlugin;
 import com.structurizr.dsl.StructurizrDslPluginContext;
 

@@ -1,4 +1,4 @@
-package com.patterns.params;
+package io.github.nifacy.c4patterns.params;
 
 import java.util.ArrayList;
 import java.util.List;

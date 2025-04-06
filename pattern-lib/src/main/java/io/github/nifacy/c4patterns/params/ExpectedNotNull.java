@@ -1,4 +1,4 @@
-package com.patterns.params;
+package io.github.nifacy.c4patterns.params;
 
 public class ExpectedNotNull extends ParseError {
 
