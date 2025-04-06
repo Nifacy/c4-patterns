@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     implementation 'com.structurizr:structurizr-dsl:3.2.1'
-    implementation "com.patterns:pattern-lib:${patternLibVersion}"
+    implementation "io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"
 }
 
 compileJava.options.encoding = 'UTF-8'
@@ -40,11 +40,11 @@ task 'patternExamples.reverseProxy'(type: com.github.jengelman.gradle.plugins.sh
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
-        include 'com/patterns/ReverseProxy*.class'
+        include 'ReverseProxy*.class'
     }
 }
 
@@ -53,11 +53,11 @@ task 'patternExamples.databasePerService'(type: com.github.jengelman.gradle.plug
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
-        include 'com/patterns/DatabasePerService*.class'
+        include 'DatabasePerService*.class'
     }
 }
 
@@ -66,11 +66,11 @@ task 'patternExamples.layered'(type: com.github.jengelman.gradle.plugins.shadow.
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
-        include 'com/patterns/Layered*.class'
+        include 'Layered*.class'
     }
 }
 
@@ -79,11 +79,11 @@ task 'patternExamples.saga'(type: com.github.jengelman.gradle.plugins.shadow.tas
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
-        include 'com/patterns/Saga*.class'
+        include 'Saga*.class'
     }
 }
 
@@ -92,11 +92,11 @@ task 'patternExamples.serviceRegistry'(type: com.github.jengelman.gradle.plugins
     configurations = [project.configurations.runtimeClasspath]
 
     dependencies {
-        include(dependency("com.patterns:pattern-lib:${patternLibVersion}"))
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
     }
 
     from (sourceSets.main.output) {
-        include 'com/patterns/ServiceRegistry*.class'
+        include 'ServiceRegistry*.class'
     }
 }
 

@@ -1,8 +1,7 @@
-package com.patterns;
-
 import java.util.Optional;
 
-import com.patterns.params.Schema;
+import io.github.nifacy.c4patterns.lib.params.Schema;
+import io.github.nifacy.c4patterns.lib.Pattern;
 import com.structurizr.dsl.IdentifiersRegister;
 import com.structurizr.dsl.StructurizrDslParser;
 import com.structurizr.dsl.StructurizrDslPluginContext;
