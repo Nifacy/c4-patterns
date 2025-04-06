@@ -13,6 +13,10 @@ import com.structurizr.dsl.StructurizrDslPluginContext;
 
 public abstract class Pattern<T extends Schema> implements StructurizrDslPlugin {
 
+    public static Optional<String> getDocumentation() {
+        return Optional.empty();
+    }
+
     @Override
     public void run(StructurizrDslPluginContext context) {
         Class<?> childClass = this.getClass();
@@ -28,10 +32,6 @@ public abstract class Pattern<T extends Schema> implements StructurizrDslPlugin 
         } catch (ParseError e) {
             throw new RuntimeException("[" + childClass.getName() + "] Error during arguments parse:\n" + e);
         }
-    }
-
-    public static Optional<String> getDocumentation() {
-        return Optional.empty();
     }
 
     protected abstract void apply(StructurizrDslPluginContext context, T arguments);
