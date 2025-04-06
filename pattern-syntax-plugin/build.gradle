@@ -14,7 +14,7 @@ repositories {
     mavenCentral()
     maven {
         name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/Nifacy/structurizr-templates")
+        url = uri("https://maven.pkg.github.com/Nifacy/c4-patterns")
         credentials {
             username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
             password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
