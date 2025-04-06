@@ -1,53 +1,30 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-
-import io.github.nifacy.c4patterns.lib.params.Schema;
-import io.github.nifacy.c4patterns.lib.Pattern;
 import com.structurizr.dsl.IdentifiersRegister;
 import com.structurizr.dsl.StructurizrDslParser;
 import com.structurizr.dsl.StructurizrDslPluginContext;
 import com.structurizr.model.Container;
 import com.structurizr.model.Element;
 import com.structurizr.model.Relationship;
+import io.github.nifacy.c4patterns.lib.Pattern;
+import io.github.nifacy.c4patterns.lib.params.Schema;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 public class Layered extends Pattern<Layered.Arguments> {
 
-    public static class LayerArgument implements Schema {
-
-        public String name;
-        public String elements;
-    }
-
-    public static class Arguments implements Schema {
-
-        public List<LayerArgument> layer;
-    }
-
-    private class LayerGroup {
-
-        public String name;
-        public List<Container> elements;
-
-        public LayerGroup(String name, List<Container> elements) {
-            this.name = name;
-            this.elements = elements;
-        }
-    }
-
     public static Optional<String> getDocumentation() {
-        StringBuilder builder = new StringBuilder();
 
-        builder.append("### Многозвенная архитектура\n");
-        builder.append("Один из самых простых паттернов. Идея состоит в том, чтобы разбить всю систему на несколько слоев.\n");
-        builder.append("Каждый из слоев имеет следующие особенности и ограничения:\n");
-        builder.append("- Каждый слой может обращаться только к слою на уровень ниже, и не более\n");
-        builder.append("- Все слои образуют порядок. То есть, мы можем сказать, какой слой за каким стоит\n");
-        builder.append("\n");
-        builder.append("В модели C4 слои можно представить в виде групп, так как их физического разграничения нет (если убрать разделение по слоям, то это будет просто набор контейнеров, которые общаются по определенному протоколу).\n");
+        String builder = "### Многозвенная архитектура\n" +
+                "Один из самых простых паттернов. Идея состоит в том, чтобы разбить всю систему на несколько слоев.\n" +
+                "Каждый из слоев имеет следующие особенности и ограничения:\n" +
+                "- Каждый слой может обращаться только к слою на уровень ниже, и не более\n" +
+                "- Все слои образуют порядок. То есть, мы можем сказать, какой слой за каким стоит\n" +
+                "\n" +
+                "В модели C4 слои можно представить в виде групп, так как их физического разграничения нет (если убрать разделение по слоям, то это будет просто набор контейнеров, которые общаются по определенному протоколу).\n";
 
-        return Optional.of(builder.toString());
+        return Optional.of(builder);
     }
 
     @Override
@@ -74,7 +51,7 @@ public class Layered extends Pattern<Layered.Arguments> {
 
             System.out.println("[log] [layered] Layer " + index + ":");
             System.out.println("[log] [layered]     - name: " + layerName);
-            System.out.println("[log] [layered]     - elements: " + layerElements.toString());
+            System.out.println("[log] [layered]     - elements: " + layerElements);
 
             index++;
         }
@@ -96,8 +73,8 @@ public class Layered extends Pattern<Layered.Arguments> {
                     }
 
                     throw new java.lang.RuntimeException(
-                            "Invalid relationship " + element.toString()
-                            + " (layer " + i + ") -> " + relatedElement + " (layer " + layerIndex + ")"
+                            "Invalid relationship " + element
+                                    + " (layer " + i + ") -> " + relatedElement + " (layer " + layerIndex + ")"
                     );
                 }
             }
@@ -138,12 +115,34 @@ public class Layered extends Pattern<Layered.Arguments> {
                 if (elementsMap.containsKey(element)) {
                     throw new java.lang.RuntimeException(
                             "Element '" + element.toString() + "' "
-                            + "exists in both layers: " + elementsMap.get(element).toString() + " "
-                            + "and " + index + ".");
+                                    + "exists in both layers: " + elementsMap.get(element).toString() + " "
+                                    + "and " + index + ".");
                 }
 
                 elementsMap.put(element, index);
             }
+        }
+    }
+
+    public static class LayerArgument implements Schema {
+
+        public String name;
+        public String elements;
+    }
+
+    public static class Arguments implements Schema {
+
+        public List<LayerArgument> layer;
+    }
+
+    private class LayerGroup {
+
+        public String name;
+        public List<Container> elements;
+
+        public LayerGroup(String name, List<Container> elements) {
+            this.name = name;
+            this.elements = elements;
         }
     }
 
