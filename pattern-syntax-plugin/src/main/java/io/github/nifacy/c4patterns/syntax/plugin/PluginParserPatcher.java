@@ -22,14 +22,14 @@ public class PluginParserPatcher implements ClassPatcher {
 
         CtClass pluginDslContextType = cp.get("com.structurizr.dsl.PluginDslContext");
         CtClass tokensType = cp.get("com.structurizr.dsl.Tokens");
-        CtMethod parseParamsMethod = ctClass.getDeclaredMethod("parseParameter", new CtClass[] { pluginDslContextType, tokensType });
+        CtMethod parseParamsMethod = ctClass.getDeclaredMethod("parseParameter", new CtClass[]{pluginDslContextType, tokensType});
 
         parseParamsMethod.insertBefore("""
-            if (context.patternParser != null) {
-                context.patternParser.parseBlockLine(io.github.nifacy.c4patterns.syntax.plugin.PatchUtils.toTokenList(tokens));
-                return;
-            }
-        """);
+                    if (context.patternParser != null) {
+                        context.patternParser.parseBlockLine(io.github.nifacy.c4patterns.syntax.plugin.PatchUtils.toTokenList(tokens));
+                        return;
+                    }
+                """);
 
         return ctClass.toBytecode();
     }
