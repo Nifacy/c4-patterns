@@ -1,4 +1,4 @@
-package com.patterns.lens;
+package io.github.nifacy.c4patterns.lens;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -12,8 +12,8 @@ import java.util.Optional;
 
 import org.json.JSONObject;
 
-import com.patterns.lens.info.PatternInfo;
-import com.patterns.lens.info.PatternInfoGetter;
+import io.github.nifacy.c4patterns.lens.info.PatternInfo;
+import io.github.nifacy.c4patterns.lens.info.PatternInfoGetter;
 
 
 public class App {

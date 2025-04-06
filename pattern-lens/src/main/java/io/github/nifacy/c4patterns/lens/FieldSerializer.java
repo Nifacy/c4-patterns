@@ -1,13 +1,13 @@
-package com.patterns.lens;
+package io.github.nifacy.c4patterns.lens;
 
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.patterns.lens.info.fields.FieldArray;
-import com.patterns.lens.info.fields.SchemaField;
-import com.patterns.lens.info.fields.SingleField;
+import io.github.nifacy.c4patterns.lens.info.fields.FieldArray;
+import io.github.nifacy.c4patterns.lens.info.fields.SchemaField;
+import io.github.nifacy.c4patterns.lens.info.fields.SingleField;
 
 class FieldSerializer {
 

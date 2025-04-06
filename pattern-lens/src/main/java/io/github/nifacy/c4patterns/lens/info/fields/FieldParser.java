@@ -1,4 +1,4 @@
-package com.patterns.lens.info.fields;
+package io.github.nifacy.c4patterns.lens.info.fields;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

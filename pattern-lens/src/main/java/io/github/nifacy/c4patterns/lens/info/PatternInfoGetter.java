@@ -1,12 +1,12 @@
-package com.patterns.lens.info;
+package io.github.nifacy.c4patterns.lens.info;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
-import com.patterns.lens.info.fields.FieldParser;
-import com.patterns.lens.info.fields.SchemaField;
+import io.github.nifacy.c4patterns.lens.info.fields.FieldParser;
+import io.github.nifacy.c4patterns.lens.info.fields.SchemaField;
 
 public class PatternInfoGetter {
 

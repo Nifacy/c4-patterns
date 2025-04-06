@@ -1,4 +1,4 @@
-package com.patterns.lens.info;
+package io.github.nifacy.c4patterns.lens.info;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

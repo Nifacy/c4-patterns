@@ -1,9 +1,9 @@
-package com.patterns.lens.info;
+package io.github.nifacy.c4patterns.lens.info;
 
 import java.util.List;
 import java.util.Optional;
 
-import com.patterns.lens.info.fields.SchemaField;
+import io.github.nifacy.c4patterns.lens.info.fields.SchemaField;
 
 public class PatternInfo {
 

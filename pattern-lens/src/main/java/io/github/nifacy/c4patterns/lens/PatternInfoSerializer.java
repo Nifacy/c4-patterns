@@ -1,8 +1,8 @@
-package com.patterns.lens;
+package io.github.nifacy.c4patterns.lens;
 
 import org.json.JSONObject;
 
-import com.patterns.lens.info.PatternInfo;
+import io.github.nifacy.c4patterns.lens.info.PatternInfo;
 
 class PatternInfoSerializer {
 
