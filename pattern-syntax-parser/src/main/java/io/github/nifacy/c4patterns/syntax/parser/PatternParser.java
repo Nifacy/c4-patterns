@@ -5,14 +5,18 @@ import java.util.List;
 import java.util.Map;
 
 public class PatternParser {
-    private String pluginName;
     private final Map<String, String> pluginParameters;
+    private String pluginName;
 
     public PatternParser() {
         this.pluginName = null;
         this.pluginParameters = new HashMap<>();
 
         logMessage("Initialized");
+    }
+
+    private static boolean checkHeaderTokens(List<String> tokens) {
+        return tokens.size() == 1;
     }
 
     public void parseHeader(List<String> tokens) {
@@ -33,7 +37,7 @@ public class PatternParser {
         logMessage("line tokens: " + tokens);
 
         if (tokens.size() != 2) {
-            throw  new IllegalArgumentException("Expected: <name> <value>");
+            throw new IllegalArgumentException("Expected: <name> <value>");
         }
         this.pluginParameters.put(tokens.get(0), tokens.get(1));
 
@@ -54,13 +58,9 @@ public class PatternParser {
         return info;
     }
 
-    private static boolean checkHeaderTokens(List<String> tokens) {
-        return tokens.size() == 1;
-    }
-
     private String getLogPrefix() {
         int objectId = hashCode();
-        String typeName =  this.getClass().getName();
+        String typeName = this.getClass().getName();
 
         return "[" + typeName + "@" + objectId + "] ";
     }
