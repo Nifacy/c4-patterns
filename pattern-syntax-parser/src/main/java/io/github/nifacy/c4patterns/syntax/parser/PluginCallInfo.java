@@ -1,4 +1,4 @@
-package com.patterns.syntax.parser;
+package io.github.nifacy.c4patterns.syntax.parser;
 
 import java.util.Map;
 
