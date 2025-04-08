@@ -331,7 +331,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	try {
 		console.log("Activate ...");
 
-		const extensionConfig = vscode.workspace.getConfiguration("structurizrPatterns");
+		const extensionConfig = vscode.workspace.getConfiguration("c4dslpatterns");
 
 		console.log("Initialize Pattern Lens client...");
 
