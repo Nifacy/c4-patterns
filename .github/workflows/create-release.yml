@@ -171,14 +171,14 @@ jobs:
         if-no-files-found: error
 
   build-vs-code-extension:
-    name: Build 'structurizr-templates-extension' project
+    name: Build 'vs-code-extension' project
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: structurizr-templates-extension
+        sparse-checkout: vs-code-extension
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -187,21 +187,21 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-      working-directory: structurizr-templates-extension
+      working-directory: vs-code-extension
 
     - name: Install VS Code CLI
       run: npm install -g @vscode/vsce
-      working-directory: structurizr-templates-extension
+      working-directory: vs-code-extension
 
     - name: Build VSIX package
-      run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/extension.vsix
-      working-directory: structurizr-templates-extension
+      run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/vs-code-extension.vsix
+      working-directory: vs-code-extension
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: structurizr-templates-extension
-        path: ${{ github.workspace }}/extension.vsix
+        name: vs-code-extension
+        path: ${{ github.workspace }}/vs-code-extension.vsix
 
   create-release:
     name: Create Release
@@ -245,11 +245,11 @@ jobs:
         name: pattern-syntax-plugin
         path: ${{ github.workspace }}/pattern-syntax-plugin
 
-    - name: Download 'structurizr-templates-extension' artifacts
+    - name: Download 'vs-code-extension' artifacts
       uses: actions/download-artifact@v4
       with:
-        name: structurizr-templates-extension
-        path: ${{ github.workspace }}/structurizr-templates-extension
+        name: vs-code-extension
+        path: ${{ github.workspace }}/vs-code-extension
 
     - name: Wrap examples in zip file
       run: zip -r ${{ github.workspace }}/examples/examples.zip *
@@ -263,7 +263,7 @@ jobs:
         cp ${{ github.workspace }}/pattern-lens/* release-files/
         cp ${{ github.workspace }}/pattern-syntax-parser/* release-files/
         cp ${{ github.workspace }}/pattern-syntax-plugin/* release-files/
-        cp ${{ github.workspace }}/structurizr-templates-extension/* release-files/
+        cp ${{ github.workspace }}/vs-code-extension/* release-files/
 
     - name: Create release
       uses: ncipollo/release-action@v1
