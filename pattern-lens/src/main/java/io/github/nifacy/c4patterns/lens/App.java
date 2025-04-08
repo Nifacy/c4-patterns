@@ -49,7 +49,7 @@ public class App {
         String pluginsDirPath = Paths.get(workspacePath).getParent().resolve("plugins").toString();
         ClassLoader loader = initLoader(pluginsDirPath);
 
-        Optional<Class> maybeSchemaTagClass = tryLoadClass(loader, "com.patterns.params.Schema");
+        Optional<Class> maybeSchemaTagClass = tryLoadClass(loader, "io.github.nifacy.c4patterns.lib.params.Schema");
         if (!maybeSchemaTagClass.isPresent()) {
             throw new java.lang.RuntimeException("Broken patterns library: Unable to load schema base interface");
         }
@@ -66,7 +66,7 @@ public class App {
         String pluginsDirPath = Paths.get(workspacePath).getParent().resolve("plugins").toString();
         ClassLoader loader = initLoader(pluginsDirPath);
 
-        Optional<Class> basePatternClass = tryLoadClass(loader, "com.patterns.Pattern");
+        Optional<Class> basePatternClass = tryLoadClass(loader, "io.github.nifacy.c4patterns.lib.Pattern");
         if (!basePatternClass.isPresent()) {
             System.err.println("[warn] current workspace doesn't support patterns");
             return false;
