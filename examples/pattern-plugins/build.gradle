@@ -110,5 +110,5 @@ task patternExamples(dependsOn: [
 }
 
 build {
-    // dependsOn patternExamples
+    dependsOn patternExamples
 }
