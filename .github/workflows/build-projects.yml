@@ -152,7 +152,6 @@ jobs:
     name: Build 'pattern-syntax-plugin' project
     runs-on: ubuntu-latest
     needs:
-    - build-pattern-lib
     - build-pattern-syntax-parser
 
     steps:
@@ -169,26 +168,17 @@ jobs:
         build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
         build-scan-terms-of-use-agree: 'yes'
 
-    - name: Download 'pattern-lib' package
-      uses: actions/download-artifact@v4
-      with:
-        name: pattern-lib-package
-        path: ${{ github.workspace }}/pattern-lib-package
-
     - name: Download 'pattern-syntax-parser' package
       uses: actions/download-artifact@v4
       with:
         name: pattern-syntax-parser-package
         path: ${{ github.workspace }}/pattern-syntax-parser
 
-    - name: Install 'pattern-lib' package in local maven repository
-      run: rsync -av ${{ github.workspace }}/pattern-lib-package/ ${{ github.workspace }}/repo/
-
     - name: Install 'pattern-syntax-parser' package in local maven repository
       run: rsync -av ${{ github.workspace }}/pattern-syntax-parser/ ${{ github.workspace }}/repo/
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-lib.version=debug -Pdeps.pattern-syntax-parser.version=debug build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-syntax-parser.version=debug build
       working-directory: pattern-syntax-plugin
 
     - name: Publish jar file
