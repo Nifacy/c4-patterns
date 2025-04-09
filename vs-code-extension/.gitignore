@@ -1,0 +1,7 @@
+.vscode/
+.vscode-test/**
+.yarnrc
+**/eslint.config.mjs
+**/*.map
+out/
+node_modules/

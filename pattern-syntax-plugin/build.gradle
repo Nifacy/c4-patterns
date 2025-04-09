@@ -1,0 +1,56 @@
+plugins {
+    id 'java-library'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+group = 'com.patterns'
+version = '1.0'
+
+def patternSyntaxParserVersion = project.findProperty("deps.pattern-syntax-parser.version") ?: '1.0'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/Nifacy/c4-patterns")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.javassist:javassist:3.30.2-GA'
+    implementation "io.github.nifacy.c4patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+shadowJar {
+    archiveBaseName = rootProject.name
+    archiveClassifier = ''
+    archiveVersion = project.version
+
+    manifest {
+        attributes(
+                'Premain-Class': 'io.github.nifacy.c4patterns.syntax.plugin.PatternSyntaxPlugin',
+                'Can-Redefine-Classes': 'true',
+                'Can-Retransform-Classes': 'true'
+        )
+    }
+
+    dependencies {
+        include(dependency('org.javassist:javassist:.*'))
+        include(dependency('io.github.nifacy.c4patterns:pattern-syntax-parser:.*'))
+    }
+}
+
+build {
+    dependsOn shadowJar
+}

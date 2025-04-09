@@ -1,0 +1,25 @@
+task build {
+    dependsOn ':pattern-plugins:build'
+
+    doLast {
+        def workspacesDir = layout.buildDirectory.dir("workspaces").get().asFile
+        def pluginsDir = layout.buildDirectory.dir("workspaces/plugins").get().asFile
+
+        workspacesDir.mkdirs()
+        pluginsDir.mkdirs()
+
+        copy {
+            from("workspace-examples")
+            into(workspacesDir)
+            include("*.dsl")
+        }
+
+        copy {
+            from(project(":pattern-plugins").layout.buildDirectory.dir("libs"))
+            into(pluginsDir)
+            include("*.jar")
+        }
+
+        println "Workspace build: ${workspacesDir.absolutePath}"
+    }
+}

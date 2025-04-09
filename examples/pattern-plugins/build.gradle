@@ -1,0 +1,114 @@
+plugins {
+    id 'java'
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: '1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/Nifacy/c4-patterns")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+            password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.structurizr:structurizr-dsl:3.2.1'
+    implementation "io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+task 'patternExamples.reverseProxy'(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName = 'reverse-proxy'
+    configurations = [project.configurations.runtimeClasspath]
+
+    dependencies {
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
+    }
+
+    from(sourceSets.main.output) {
+        include 'ReverseProxy*.class'
+    }
+}
+
+task 'patternExamples.databasePerService'(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName = 'database-per-service'
+    configurations = [project.configurations.runtimeClasspath]
+
+    dependencies {
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
+    }
+
+    from(sourceSets.main.output) {
+        include 'DatabasePerService*.class'
+    }
+}
+
+task 'patternExamples.layered'(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName = 'layered'
+    configurations = [project.configurations.runtimeClasspath]
+
+    dependencies {
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
+    }
+
+    from(sourceSets.main.output) {
+        include 'Layered*.class'
+    }
+}
+
+task 'patternExamples.saga'(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName = 'saga'
+    configurations = [project.configurations.runtimeClasspath]
+
+    dependencies {
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
+    }
+
+    from(sourceSets.main.output) {
+        include 'Saga*.class'
+    }
+}
+
+task 'patternExamples.serviceRegistry'(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    archiveBaseName = 'service-registry'
+    configurations = [project.configurations.runtimeClasspath]
+
+    dependencies {
+        include(dependency("io.github.nifacy.c4patterns:pattern-lib:${patternLibVersion}"))
+    }
+
+    from(sourceSets.main.output) {
+        include 'ServiceRegistry*.class'
+    }
+}
+
+task patternExamples(dependsOn: [
+        'patternExamples.reverseProxy',
+        'patternExamples.databasePerService',
+        'patternExamples.layered',
+        'patternExamples.saga',
+        'patternExamples.serviceRegistry'
+]) {
+}
+
+build {
+    dependsOn patternExamples
+}
