@@ -1,0 +1,222 @@
+name: Build Projects
+
+on:
+  pull_request:
+    branches:
+    - dev
+
+jobs:
+  build-pattern-lib:
+    name: Build 'pattern-lib' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-lib
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
+      working-directory: pattern-lib
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lib
+        path: pattern-lib/build/libs/*.jar
+        if-no-files-found: error
+
+    - name: Publish maven package
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lib-package
+        path: ${{ github.workspace }}/repo
+        if-no-files-found: error
+
+  build-examples:
+    name: Build 'examples' project
+    runs-on: ubuntu-latest
+    needs: build-pattern-lib
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: examples
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Download 'pattern-lib' package
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-lib-package
+        path: ${{ github.workspace }}/pattern-lib-package
+
+    - name: Install 'pattern-lib' package in local maven repository
+      run: rsync -av ${{ github.workspace }}/pattern-lib-package/ ${{ github.workspace }}/repo/
+
+    - name: Display local maven repository
+      run: ls -R ${{ github.workspace }}/repo
+
+    - name: Run build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-lib.version=debug build
+      working-directory: examples
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: examples
+        path: examples/build/workspaces/*
+        if-no-files-found: error
+
+  build-pattern-lens:
+    name: Build 'pattern-lens' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-lens
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle build
+      working-directory: pattern-lens
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lens
+        path: pattern-lens/build/libs/*
+
+  build-pattern-syntax-parser:
+    name: Build 'pattern-syntax-parser' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-syntax-parser
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
+      working-directory: pattern-syntax-parser
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-syntax-parser
+        path: pattern-syntax-parser/build/libs/*.jar
+        if-no-files-found: error
+
+    - name: Publish maven package
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-syntax-parser-package
+        path: ${{ github.workspace }}/repo
+        if-no-files-found: error
+
+  build-pattern-syntax-plugin:
+    name: Build 'pattern-syntax-plugin' project
+    runs-on: ubuntu-latest
+    needs:
+    - build-pattern-syntax-parser
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-syntax-plugin
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Download 'pattern-syntax-parser' package
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-syntax-parser-package
+        path: ${{ github.workspace }}/pattern-syntax-parser
+
+    - name: Install 'pattern-syntax-parser' package in local maven repository
+      run: rsync -av ${{ github.workspace }}/pattern-syntax-parser/ ${{ github.workspace }}/repo/
+
+    - name: Run build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-syntax-parser.version=debug build
+      working-directory: pattern-syntax-plugin
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-syntax-plugin
+        path: pattern-syntax-plugin/build/libs/*
+        if-no-files-found: error
+
+  build-vs-code-extension:
+    name: Build 'vs-code-extension' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: vs-code-extension
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.17.0'
+
+    - name: Install dependencies
+      run: npm install
+      working-directory: vs-code-extension
+
+    - name: Install VS Code CLI
+      run: npm install -g @vscode/vsce
+      working-directory: vs-code-extension
+
+    - name: Build VSIX package
+      run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/vs-code-extension.vsix
+      working-directory: vs-code-extension
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: vs-code-extension
+        path: ${{ github.workspace }}/vs-code-extension.vsix

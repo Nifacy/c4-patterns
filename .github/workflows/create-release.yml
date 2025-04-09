@@ -1,0 +1,273 @@
+name: Create Release
+
+permissions:
+  contents: write
+  packages: write
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  build-pattern-lib:
+    name: Build 'pattern-lib' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-lib
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle publishReleasePublicationToGitHubPackages build
+      working-directory: pattern-lib
+      env:
+        USERNAME: ${{ secrets.GITHUB_ACTOR }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lib
+        path: pattern-lib/build/libs/*.jar
+        if-no-files-found: error
+
+  build-examples:
+    name: Build 'examples' project
+    runs-on: ubuntu-latest
+    needs: build-pattern-lib
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: examples
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle build
+      working-directory: examples
+      env:
+        USERNAME: ${{ secrets.GITHUB_ACTOR }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: examples
+        path: examples/build/workspaces/*
+        if-no-files-found: error
+
+  build-pattern-lens:
+    name: Build 'pattern-lens' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-lens
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle build
+      working-directory: pattern-lens
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-lens
+        path: pattern-lens/build/libs/*
+
+  build-pattern-syntax-parser:
+    name: Build 'pattern-syntax-parser' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-syntax-parser
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle publishReleasePublicationToGitHubPackages build
+      working-directory: pattern-syntax-parser
+      env:
+        USERNAME: ${{ secrets.GITHUB_ACTOR }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-syntax-parser
+        path: pattern-syntax-parser/build/libs/*.jar
+        if-no-files-found: error
+
+  build-pattern-syntax-plugin:
+    name: Build 'pattern-syntax-plugin' project
+    runs-on: ubuntu-latest
+    needs:
+    - build-pattern-syntax-parser
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: pattern-syntax-plugin
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: Run build
+      run: gradle build
+      working-directory: pattern-syntax-plugin
+      env:
+        USERNAME: ${{ secrets.GITHUB_ACTOR }}
+        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Publish jar file
+      uses: actions/upload-artifact@v4
+      with:
+        name: pattern-syntax-plugin
+        path: pattern-syntax-plugin/build/libs/*
+        if-no-files-found: error
+
+  build-vs-code-extension:
+    name: Build 'vs-code-extension' project
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: vs-code-extension
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.17.0'
+
+    - name: Install dependencies
+      run: npm install
+      working-directory: vs-code-extension
+
+    - name: Install VS Code CLI
+      run: npm install -g @vscode/vsce
+      working-directory: vs-code-extension
+
+    - name: Build VSIX package
+      run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/vs-code-extension.vsix
+      working-directory: vs-code-extension
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: vs-code-extension
+        path: ${{ github.workspace }}/vs-code-extension.vsix
+
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs:
+    - build-pattern-lib
+    - build-examples
+    - build-pattern-lens
+    - build-pattern-syntax-parser
+    - build-pattern-syntax-plugin
+    - build-vs-code-extension
+
+    steps:
+    - name: Download 'pattern-lib' artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-lib
+        path: ${{ github.workspace }}/pattern-lib
+
+    - name: Download 'examples' artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: examples
+        path: ${{ github.workspace }}/examples
+
+    - name: Download 'pattern-lens' artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-lens
+        path: ${{ github.workspace }}/pattern-lens
+
+    - name: Download 'pattern-syntax-parser' artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-syntax-parser
+        path: ${{ github.workspace }}/pattern-syntax-parser
+
+    - name: Download 'pattern-syntax-plugin' artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: pattern-syntax-plugin
+        path: ${{ github.workspace }}/pattern-syntax-plugin
+
+    - name: Download 'vs-code-extension' artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: vs-code-extension
+        path: ${{ github.workspace }}/vs-code-extension
+
+    - name: Wrap examples in zip file
+      run: zip -r ${{ github.workspace }}/examples/examples.zip *
+      working-directory: ${{ github.workspace }}/examples
+
+    - name: Merge artifacts in release files
+      run: |
+        mkdir release-files
+        cp ${{ github.workspace }}/pattern-lib/* release-files/
+        cp ${{ github.workspace }}/examples/examples.zip release-files/examples.zip
+        cp ${{ github.workspace }}/pattern-lens/* release-files/
+        cp ${{ github.workspace }}/pattern-syntax-parser/* release-files/
+        cp ${{ github.workspace }}/pattern-syntax-plugin/* release-files/
+        cp ${{ github.workspace }}/vs-code-extension/* release-files/
+
+    - name: Create release
+      uses: ncipollo/release-action@v1
+      with:
+        draft: true
+        tag: ${{ github.ref_name }}
+        name: "Release ${{ github.ref_name }}"
+        artifacts: "release-files/*"

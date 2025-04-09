@@ -1,0 +1,50 @@
+{
+  "name": "c4-dsl-patterns-extension",
+  "displayName": "C4 DSL Patterns",
+  "description": "VS Code extension for c4 dsl patterns support",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [],
+    "configuration": {
+      "title": "Structurizr Patterns",
+      "properties": {
+        "c4dslpatterns.patternLensPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to pattern lens jar file"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "build-extension": "vsce package --allow-missing-repository --out ./c4-dsl-patterns-extension.vsix"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}
