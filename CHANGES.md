@@ -4,4 +4,4 @@
 
 ### External
 
-- Removed typo in project docs (#55)
+- Removed typo in project docs ([#55](https://github.com/Nifacy/c4-patterns/issues/55))
