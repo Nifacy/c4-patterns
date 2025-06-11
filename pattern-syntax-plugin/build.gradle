@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'com.gradleup.shadow' version '8.3.5'
+    id 'com.diffplug.spotless' version '7.0.4'
 }
 
 group = 'com.patterns'
@@ -29,6 +30,12 @@ dependencies {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+spotless {
+    java {
+        eclipse().configFile("${rootProject.projectDir}/eclipse-formatter.xml")
     }
 }
 
