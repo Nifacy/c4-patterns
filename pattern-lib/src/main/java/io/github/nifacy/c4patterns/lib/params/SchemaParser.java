@@ -9,7 +9,10 @@ public class SchemaParser<T extends Schema> implements Parser<T> {
     private final Map<String, Parser<?>> fieldParsers;
     private final Class<T> targetClass;
 
-    public SchemaParser(Class<T> targetClass, Map<String, Parser<?>> fieldParsers) {
+    public SchemaParser(
+        Class<T> targetClass,
+        Map<String, Parser<?>> fieldParsers
+    ) {
         this.fieldParsers = fieldParsers;
         this.targetClass = targetClass;
     }
