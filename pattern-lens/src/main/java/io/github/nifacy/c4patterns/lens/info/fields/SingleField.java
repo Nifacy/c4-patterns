@@ -5,7 +5,10 @@ public class SingleField implements SchemaField {
     private final String name;
     private final boolean isOptional;
 
-    public SingleField(String name, boolean isOptional) {
+    public SingleField(
+        String name,
+        boolean isOptional
+    ) {
         this.name = name;
         this.isOptional = isOptional;
     }
