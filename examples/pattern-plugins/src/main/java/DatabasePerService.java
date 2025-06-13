@@ -15,11 +15,11 @@ public class DatabasePerService extends Pattern<DatabasePerService.Arguments> {
     public static Optional<String> getDocumentation() {
 
         String builder = "### Database per service\n" +
-                "Паттерн используется в контексте микросервисной архитектуры.\n" +
-                "Согласно этому паттерну, каждый сервис имеет свою базу данных.\n" +
-                "Такой подход позволяет горизонтально масштабировать сервисы независимо друг от друга,\n" +
-                "делать сами базы данных независимыми (например, каждый сервис может использую такую базу данных,\n" +
-                "которая будет более подходящей для его задачи).\n";
+            "Паттерн используется в контексте микросервисной архитектуры.\n" +
+            "Согласно этому паттерну, каждый сервис имеет свою базу данных.\n" +
+            "Такой подход позволяет горизонтально масштабировать сервисы независимо друг от друга,\n" +
+            "делать сами базы данных независимыми (например, каждый сервис может использую такую базу данных,\n" +
+            "которая будет более подходящей для его задачи).\n";
 
         return Optional.of(builder);
     }
@@ -50,8 +50,8 @@ public class DatabasePerService extends Pattern<DatabasePerService.Arguments> {
                     String dbName = databaseContainer.getName();
 
                     throw new java.lang.RuntimeException(
-                            "[error] [db per service] Database '" + dbName
-                                    + "' is already used by '" + sourceName + "'"
+                        "[error] [db per service] Database '" + dbName
+                            + "' is already used by '" + sourceName + "'"
                     );
                 }
             }
@@ -69,7 +69,9 @@ public class DatabasePerService extends Pattern<DatabasePerService.Arguments> {
     private Element findElement(IdentifiersRegister identifiersRegister, String elementId) {
         Element foundElement = identifiersRegister.getElement(elementId);
         if (foundElement == null) {
-            throw new java.lang.RuntimeException("[error] [db per service] element with id '" + elementId + "' not found");
+            throw new java.lang.RuntimeException(
+                "[error] [db per service] element with id '" + elementId + "' not found"
+            );
         }
         return foundElement;
     }

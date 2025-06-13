@@ -13,13 +13,16 @@ public class ReverseProxy extends Pattern<ReverseProxy.Arguments> {
     public static Optional<String> getDocumentation() {
 
         String builder = "### Reverse Proxy pattern\n" +
-                "Основное назначение данного паттерна состоит в том, чтобы скрыть систему от клиента за одним IP адресом.\n" +
-                "Reverse Proxy получает запросы от клиента и определяет, кому переадресовать этот запрос.\n" +
-                "\n" +
-                "Reverse Proxy может выполнять следующие задачи:\n" +
-                "- **кеширование.** Proxy сервис может кешировать результаты и не делать обращений к сервисам, если этого не требуется.\n" +
-                "- **балансировка.** Proxy может выполнять задачу, схожую с Load Balancer - балансировать нагрузку на сервисы.\n" +
-                "- **шифрование.** Proxy может быть использован в целях безопасности для шифрования трафика, приходящего на сервисы.\n";
+            "Основное назначение данного паттерна состоит в том, чтобы скрыть систему от клиента за одним IP адресом.\n"
+            +
+            "Reverse Proxy получает запросы от клиента и определяет, кому переадресовать этот запрос.\n" +
+            "\n" +
+            "Reverse Proxy может выполнять следующие задачи:\n" +
+            "- **кеширование.** Proxy сервис может кешировать результаты и не делать обращений к сервисам, если этого не требуется.\n"
+            +
+            "- **балансировка.** Proxy может выполнять задачу, схожую с Load Balancer - балансировать нагрузку на сервисы.\n"
+            +
+            "- **шифрование.** Proxy может быть использован в целях безопасности для шифрования трафика, приходящего на сервисы.\n";
 
         return Optional.of(builder);
     }
@@ -48,7 +51,11 @@ public class ReverseProxy extends Pattern<ReverseProxy.Arguments> {
 
             for (Relationship relationship : targetModel.getRelationships()) {
                 if (relationship.getDestination() == targetContainer) {
-                    System.out.println("[log] Change destination for " + relationship + " from " + targetContainer + " to " + proxyContainer);
+                    System.out
+                        .println(
+                            "[log] Change destination for " + relationship + " from " + targetContainer + " to "
+                                + proxyContainer
+                        );
 
                     Method method = Relationship.class.getDeclaredMethod("setDestination", Element.class);
                     method.setAccessible(true);

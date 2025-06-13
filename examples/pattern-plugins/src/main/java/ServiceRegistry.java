@@ -16,21 +16,22 @@ public class ServiceRegistry extends Pattern<ServiceRegistry.Arguments> {
     public static Optional<String> getDocumentation() {
 
         String builder = "### Saga\n" +
-                "\n" +
-                "#### Проблема\n" +
-                "Микросервисной архитектуре свойствена работа с огромным количеством сервисов и их реплик.\n" +
-                "При использовании таких протоколов, как HTTP, необходимо знать \"местоположение\" сервиса\n" +
-                "(в данном случае это IP и порт), которому необходимо отправлять запрос.\n" +
-                "\n" +
-                "Однако, в микросервисной архитектуре сервисы постоянно создаются, удаляются, могут упасть и т. д. То есть, набор сервисов динамичный и изменяется с течением времени.\n" +
-                "\n" +
-                "#### Решение\n" +
-                "Данный паттерн предлагает сделать отдельную сущность - Service Registry,\n" +
-                "которая будет играть роль хранилища информации об активных сервисах.\n" +
-                "При старте работы сервисы отправляют запрос в Service Registry на добавление.\n" +
-                "После чего, Service Registry может отправлять запросы на проверку работоспособности сервисов,\n" +
-                "например, используя паттерн Healtcheck API.\n" +
-                "Либо же сервисы сами могут отсылать запрос, чтобы уведомить Registry о том, что они работоспособны.\n";
+            "\n" +
+            "#### Проблема\n" +
+            "Микросервисной архитектуре свойствена работа с огромным количеством сервисов и их реплик.\n" +
+            "При использовании таких протоколов, как HTTP, необходимо знать \"местоположение\" сервиса\n" +
+            "(в данном случае это IP и порт), которому необходимо отправлять запрос.\n" +
+            "\n" +
+            "Однако, в микросервисной архитектуре сервисы постоянно создаются, удаляются, могут упасть и т. д. То есть, набор сервисов динамичный и изменяется с течением времени.\n"
+            +
+            "\n" +
+            "#### Решение\n" +
+            "Данный паттерн предлагает сделать отдельную сущность - Service Registry,\n" +
+            "которая будет играть роль хранилища информации об активных сервисах.\n" +
+            "При старте работы сервисы отправляют запрос в Service Registry на добавление.\n" +
+            "После чего, Service Registry может отправлять запросы на проверку работоспособности сервисов,\n" +
+            "например, используя паттерн Healtcheck API.\n" +
+            "Либо же сервисы сами могут отсылать запрос, чтобы уведомить Registry о том, что они работоспособны.\n";
 
         return Optional.of(builder);
     }
@@ -73,10 +74,11 @@ public class ServiceRegistry extends Pattern<ServiceRegistry.Arguments> {
                 throw new java.lang.RuntimeException("Element with id '" + query.destinationId + "' not found");
             }
 
-            sourceService.uses(
+            sourceService
+                .uses(
                     _registryService,
                     "Requests location of ${destinationService.getName()}"
-            );
+                );
         }
 
         for (Container connectedService : _connectedServices.values()) {
@@ -91,7 +93,9 @@ public class ServiceRegistry extends Pattern<ServiceRegistry.Arguments> {
     private Element findElement(IdentifiersRegister identifiersRegister, String elementId) {
         Element foundElement = identifiersRegister.getElement(elementId);
         if (foundElement == null) {
-            throw new java.lang.RuntimeException("[error] [db per service] element with id '" + elementId + "' not found");
+            throw new java.lang.RuntimeException(
+                "[error] [db per service] element with id '" + elementId + "' not found"
+            );
         }
         return foundElement;
     }
@@ -114,7 +118,10 @@ public class ServiceRegistry extends Pattern<ServiceRegistry.Arguments> {
         public String sourceId;
         public String destinationId;
 
-        public RegistryQuery(String sourceId, String destinationId) {
+        public RegistryQuery(
+            String sourceId,
+            String destinationId
+        ) {
             this.sourceId = sourceId;
             this.destinationId = destinationId;
         }
