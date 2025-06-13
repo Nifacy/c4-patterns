@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'com.diffplug.spotless' version '7.0.4'
 }
 
 group = 'io.github.nifacy.c4patterns'
@@ -18,6 +19,12 @@ java {
 
 dependencies {
     implementation 'com.structurizr:structurizr-dsl:3.2.1'
+}
+
+spotless {
+    java {
+        eclipse().configFile("${rootProject.projectDir}/../common/formatter-config.xml")
+    }
 }
 
 publishing {
@@ -49,4 +56,16 @@ publishing {
             }
         }
     }
+}
+
+tasks.register('formatCheck') {
+    group = 'formatting'
+    description = "Checks if code follows the formatting rules. Doesn't make changes"
+    dependsOn 'spotlessCheck'
+}
+
+tasks.register('formatApply') {
+    group = 'formatting'
+    description = 'Applies formatting rules to all source files'
+    dependsOn 'spotlessApply'
 }
