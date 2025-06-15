@@ -5,7 +5,6 @@ import java.lang.instrument.Instrumentation;
 import java.security.ProtectionDomain;
 import java.util.List;
 
-
 public class PatternSyntaxPlugin {
     public static void premain(String args, Instrumentation inst) {
         inst.addTransformer(new StructurizrTransformer());
@@ -13,32 +12,34 @@ public class PatternSyntaxPlugin {
 
     static class StructurizrTransformer implements ClassFileTransformer {
 
-        private static final List<ClassPatcher> patchers = List.of(
+        private static final List<ClassPatcher> patchers = List
+            .of(
                 new TokenizerPatcher(),
                 new PluginParserPatcher(),
                 new PluginDslContextPatcher()
-        );
+            );
 
         @Override
         public byte[] transform(
-                Module module,
-                ClassLoader loader,
-                String className,
-                Class<?> classBeingRedefined,
-                ProtectionDomain protectionDomain,
-                byte[] classfileBuffer
+            Module module,
+            ClassLoader loader,
+            String className,
+            Class<?> classBeingRedefined,
+            ProtectionDomain protectionDomain,
+            byte[] classfileBuffer
         ) {
             try {
                 for (ClassPatcher patcher : patchers) {
                     if (className.equals(patcher.getTargetClassName())) {
-                        byte[] result = patcher.patchClass(
+                        byte[] result = patcher
+                            .patchClass(
                                 module,
                                 loader,
                                 className,
                                 classBeingRedefined,
                                 protectionDomain,
                                 classfileBuffer
-                        );
+                            );
 
                         System.err.println("[PatternSyntaxPlugin] class '" + className + "' patched");
                         return result;
