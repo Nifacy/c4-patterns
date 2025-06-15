@@ -134,7 +134,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: pattern-lens
+        sparse-checkout: |
+          common
+          pattern-lens
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
