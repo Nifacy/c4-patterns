@@ -6,9 +6,46 @@ on:
     - dev
 
 jobs:
+  check-formatting:
+    name: Check source code formatting
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        gradle-version: '8.13'
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+
+    - name: "Check formatting in 'examples' project"
+      run: gradle formatCheck
+      working-directory: examples
+
+    - name: "Check formatting in 'pattern-lens' project"
+      run: gradle formatCheck
+      working-directory: pattern-lens
+
+    - name: "Check formatting in 'pattern-lib' project"
+      run: gradle formatCheck
+      working-directory: pattern-lib
+
+    - name: "Check formatting in 'pattern-syntax-parser' project"
+      run: gradle formatCheck
+      working-directory: pattern-syntax-parser
+
+    - name: "Check formatting in 'pattern-syntax-plugin' project"
+      run: gradle formatCheck
+      working-directory: pattern-syntax-plugin
+
   build-pattern-lib:
     name: Build 'pattern-lib' project
     runs-on: ubuntu-latest
+    needs: check-formatting
 
     steps:
     - name: Checkout code
@@ -45,7 +82,7 @@ jobs:
   build-examples:
     name: Build 'examples' project
     runs-on: ubuntu-latest
-    needs: build-pattern-lib
+    needs: [ check-formatting, build-pattern-lib ]
 
     steps:
     - name: Checkout code
@@ -86,7 +123,7 @@ jobs:
 
   build-pattern-lens:
     name: Build 'pattern-lens' project
-    runs-on: ubuntu-latest
+    runs-on: [ check-formatting, ubuntu-latest ]
 
     steps:
     - name: Checkout code
@@ -114,7 +151,7 @@ jobs:
 
   build-pattern-syntax-parser:
     name: Build 'pattern-syntax-parser' project
-    runs-on: ubuntu-latest
+    runs-on: [ check-formatting, ubuntu-latest ]
 
     steps:
     - name: Checkout code
@@ -151,8 +188,7 @@ jobs:
   build-pattern-syntax-plugin:
     name: Build 'pattern-syntax-plugin' project
     runs-on: ubuntu-latest
-    needs:
-    - build-pattern-syntax-parser
+    needs: [ check-formatting, build-pattern-syntax-parser ]
 
     steps:
     - name: Checkout code
@@ -191,6 +227,7 @@ jobs:
   build-vs-code-extension:
     name: Build 'vs-code-extension' project
     runs-on: ubuntu-latest
+    needs: check-formatting
 
     steps:
     - name: Checkout code
