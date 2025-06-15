@@ -6,10 +6,7 @@ public class PluginCallInfo {
     private final String name;
     private final Map<String, String> parameters;
 
-    public PluginCallInfo(
-        String name,
-        Map<String, String> parameters
-    ) {
+    public PluginCallInfo(String name, Map<String, String> parameters) {
         this.name = name;
         this.parameters = parameters;
     }
