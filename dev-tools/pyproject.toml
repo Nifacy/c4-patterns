@@ -5,5 +5,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = "~=3.13"
 dependencies = [
+    "black>=25.1.0",
     "marko==2.1.4",
 ]
