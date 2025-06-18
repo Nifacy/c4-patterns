@@ -1,8 +1,8 @@
 import re
 import marko
 import marko.inline
-from _types import ChangeItem, ChangeLog, IssueInfo, VersionChanges
-from _markdown import Elements, parse_header, parse_item_list, parse_raw_text, skip_blank_lines, validate_element_type
+from ._types import ChangeItem, ChangeLog, IssueInfo, VersionChanges
+from ._markdown import Elements, parse_header, parse_item_list, parse_raw_text, skip_blank_lines, validate_element_type
 
 
 
