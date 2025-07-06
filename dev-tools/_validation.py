@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import NoReturn, Sequence
+from typing import NoReturn, Sequence, override
 from marko.element import Element
 from marko.block import Heading, BlankLine, List, Paragraph, ListItem
 from marko.inline import RawText, Link
@@ -21,86 +21,6 @@ class Cursor:
             return None, self
 
         return self.__elements[self.__index], Cursor(self.__elements, self.__index + 1)
-
-
-class ValidateHeader:
-    def __init__(self, level: int, text_expr: re.Pattern):
-        self.__level = level
-        self.__text_expr = text_expr
-
-    def validate(self, cursor: Cursor) -> Cursor:
-        current_element, next_cursor = cursor.next()
-
-        if current_element is None:
-            self.__raise_error(current_element)
-
-        if not isinstance(current_element, Heading):
-            self.__raise_error(current_element)
-
-        if current_element.level != self.__level:
-            self.__raise_error(current_element)
-
-        self.__validate_header_content(current_element)
-
-        return next_cursor
-
-    def __validate_header_content(self, element: Heading) -> None:
-        if not isinstance(element.children[0], RawText):
-            self.__raise_error(element)
-
-        content = element.children[0].children
-
-        if self.__text_expr.fullmatch(content) is None:
-            self.__raise_error(element)
-
-    def __raise_error(self, element: Element | None) -> NoReturn:
-        repr_element = repr(element) if element is not None else "EOF"
-        raise ValidationError(
-            f"Expected heading with (level={self.__level}, text={self.__text_expr}), but found {repr_element}"
-        )
-
-
-class SkipBlankLines:
-    def validate(self, cursor: Cursor) -> Cursor:
-        while True:
-            current_element, next_cursor = cursor.next()
-
-            if current_element is None:
-                return next_cursor
-
-            if not isinstance(current_element, BlankLine):
-                return cursor
-
-            cursor = next_cursor
-
-
-class ValidateList:
-    def __init__(self, item_validator=None):
-        self.__item_validator = item_validator
-
-    def validate(self, cursor: Cursor) -> Cursor:
-        current_element, next_cursor = cursor.next()
-
-        if current_element is None:
-            self.__raise_error(current_element)
-
-        if not isinstance(current_element, List):
-            self.__raise_error(current_element)
-
-        if self.__item_validator is not None:
-            for item in current_element.children:
-                if not isinstance(item, ListItem):
-                    self.__raise_item_error(item)
-                self.__item_validator.validate(Cursor(item.children))
-
-        return next_cursor
-
-    def __raise_error(self, element: Element | None) -> NoReturn:
-        repr_element = repr(element) if element is not None else "EOF"
-        raise ValidationError(f"Expected list, but found {repr_element}")
-
-    def __raise_item_error(self, element: Element) -> NoReturn:
-        raise ValidationError(f"Expected list item, but found {element}")
 
 
 class Chain:
@@ -127,74 +47,6 @@ class Optional:
         return self.__then.validate(cursor) if self.__then is not None else cursor
 
 
-class ValidateParagraph:
-    def __init__(self, item_validator=None):
-        self.__item_validator = item_validator
-
-    def validate(self, cursor: Cursor) -> Cursor:
-        current_element, next_cursor = cursor.next()
-
-        if current_element is None:
-            return next_cursor
-
-        if not isinstance(current_element, Paragraph):
-            raise ValidationError(f"Expected paragraph, but found {current_element}")
-
-        if self.__item_validator is not None:
-            self.__item_validator.validate(Cursor(current_element.children))
-
-        return next_cursor
-
-
-class ValidateRawText:
-    def __init__(self, regex: re.Pattern):
-        self.__regex = regex
-
-    def validate(self, cursor: Cursor) -> Cursor:
-        current_element, next_cursor = cursor.next()
-
-        if current_element is None:
-            return next_cursor
-
-        if not isinstance(current_element, RawText):
-            raise ValidationError(f"Expected raw text, but found {current_element}")
-
-        if self.__regex.fullmatch(current_element.children) is None:
-            raise ValidationError(
-                f"Raw text does not match regex: {self.__regex.pattern}"
-            )
-
-        return next_cursor
-
-
-class ValidateLink:
-    def __init__(self, text_expr: re.Pattern):
-        self.__text_expr = text_expr
-
-    def validate(self, cursor: Cursor) -> Cursor:
-        current_element, next_cursor = cursor.next()
-
-        if current_element is None:
-            return next_cursor
-
-        if not isinstance(current_element, Link):
-            raise ValidationError(f"Expected link, but found {current_element}")
-
-        if not isinstance(current_element.children[0], RawText):
-            raise ValidationError(
-                f"Expected raw text in link, but found {current_element.children[0]}"
-            )
-
-        content = current_element.children[0].children
-
-        if self.__text_expr.fullmatch(content) is None:
-            raise ValidationError(
-                f"Link text does not match regex: {self.__text_expr.pattern}"
-            )
-
-        return next_cursor
-
-
 class Repeat:
     def __init__(self, validator, next_validator):
         self.__validator = validator
@@ -210,6 +62,45 @@ class Repeat:
         return self.__next.validate(cursor)
 
 
+class _ElementValidator[_T: Element]:
+    def __init__(self, expected_type: type[_T], children_validator=None):
+        self.__expected_type = expected_type
+        self.__children_validator = children_validator
+
+    def validate(self, cursor: Cursor) -> Cursor:
+        current_element, next_cursor = cursor.next()
+
+        if current_element is None:
+            self.__raise_eof_error()
+
+        if not isinstance(current_element, self.__expected_type):
+            self.__raise_wrong_type_error()
+
+        self._validate_element(current_element)
+        if self.__children_validator is not None:
+            self.__children_validator.validate(Cursor(current_element.children))
+
+        return next_cursor
+
+    def __raise_eof_error(self) -> NoReturn:
+        raise ValidationError(
+            f"Expected {self.__expected_type.__name__}, but found EOF"
+        )
+
+    def __raise_wrong_type_error(self, element: Element) -> NoReturn:
+        raise ValidationError(
+            f"Expected {self.__expected_type.__name__}, but found {type(element).__name__}"
+        )
+
+    def _validate_element(self, element: _T) -> None:
+        """
+        Override this method to implement specific element validation logic.
+
+        :param element: The element to validate.
+        """
+        pass
+
+
 class ValidateEOF:
     def validate(self, cursor: Cursor) -> Cursor:
         current_element, next_cursor = cursor.next()
@@ -218,3 +109,73 @@ class ValidateEOF:
             raise ValidationError(f"Expected EOF, but found {current_element}")
 
         return next_cursor
+
+
+class ValidateRawText(_ElementValidator[RawText]):
+    def __init__(self, regex: re.Pattern):
+        super().__init__(RawText)
+        self.__regex = regex
+
+    @override
+    def _validate_element(self, element: RawText) -> None:
+        if self.__regex.fullmatch(element.children) is None:
+            raise ValidationError(
+                f"Raw text does not match regex: {self.__regex.pattern}"
+            )
+
+
+class ValidateHeader(_ElementValidator[Heading]):
+    def __init__(self, level: int, text_expr: re.Pattern):
+        super().__init__(
+            expected_type=Heading,
+            children_validator=Chain(ValidateRawText(text_expr), ValidateEOF()),
+        )
+        self.__level = level
+
+    @override
+    def _validate_element(self, element: Heading) -> None:
+        if element.level != self.__level:
+            raise ValidationError(
+                f"Expected heading with level {self.__level} but found {element.level}"
+            )
+
+
+class SkipBlankLines:
+    def validate(self, cursor: Cursor) -> Cursor:
+        while True:
+            current_element, next_cursor = cursor.next()
+
+            if current_element is None:
+                return next_cursor
+
+            if not isinstance(current_element, BlankLine):
+                return cursor
+
+            cursor = next_cursor
+
+
+class ValidateList(_ElementValidator[List]):
+    def __init__(self, item_validator=None):
+        super().__init__(
+            expected_type=List,
+            children_validator=_ElementValidator(
+                expected_type=ListItem,
+                children_validator=item_validator,
+            ),
+        )
+
+
+class ValidateParagraph(_ElementValidator[Paragraph]):
+    def __init__(self, item_validator=None):
+        super().__init__(
+            expected_type=Paragraph,
+            children_validator=item_validator,
+        )
+
+
+class ValidateLink(_ElementValidator[Link]):
+    def __init__(self, text_expr: re.Pattern):
+        super().__init__(
+            expected_type=Link,
+            children_validator=Chain(ValidateRawText(text_expr), ValidateEOF()),
+        )
