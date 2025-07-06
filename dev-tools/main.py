@@ -8,45 +8,46 @@ from typing import NoReturn
 from marko import Markdown
 import re
 
-import _validation
+from _validation import markdown as _md_validation
+from _validation import base as _base_validation
 
 
-_change_item_validator = _validation.Chain(
-    _validation.ValidateParagraph(
-        _validation.Chain(
-            _validation.ValidateRawText(re.compile(r"^.+ \($")),
-            _validation.ValidateLink(re.compile(r"^#\d+$")),
-            _validation.ValidateRawText(re.compile(r"\)")),
+_change_item_validator = _base_validation.Chain(
+    _md_validation.ValidateParagraph(
+        _base_validation.Chain(
+            _md_validation.ValidateRawText(re.compile(r"^.+ \($")),
+            _md_validation.ValidateLink(re.compile(r"^#\d+$")),
+            _md_validation.ValidateRawText(re.compile(r"\)")),
         ),
     ),
-    _validation.ValidateEOF(),
+    _md_validation.ValidateEOF(),
 )
 
 
-_changelog_validator = _validation.Chain(
-    _validation.ValidateHeader(1, re.compile("Changes")),
-    _validation.Repeat(
-        _validation.Chain(
-            _validation.SkipBlankLines(),
-            _validation.ValidateHeader(2, re.compile(r"\[\d+\.\d+\]")),
-            _validation.SkipBlankLines(),
-            _validation.ValidateHeader(3, re.compile("External")),
-            _validation.SkipBlankLines(),
-            _validation.ValidateList(_change_item_validator),
-            _validation.Optional(
-                _validation.Chain(
-                    _validation.SkipBlankLines(),
-                    _validation.ValidateHeader(3, re.compile("Internal")),
+_changelog_validator = _base_validation.Chain(
+    _md_validation.ValidateHeader(1, re.compile("Changes")),
+    _base_validation.Repeat(
+        _base_validation.Chain(
+            _md_validation.SkipBlankLines(),
+            _md_validation.ValidateHeader(2, re.compile(r"\[\d+\.\d+\]")),
+            _md_validation.SkipBlankLines(),
+            _md_validation.ValidateHeader(3, re.compile("External")),
+            _md_validation.SkipBlankLines(),
+            _md_validation.ValidateList(_change_item_validator),
+            _base_validation.Optional(
+                _base_validation.Chain(
+                    _md_validation.SkipBlankLines(),
+                    _md_validation.ValidateHeader(3, re.compile("Internal")),
                 ),
-                _validation.Chain(
-                    _validation.SkipBlankLines(),
-                    _validation.ValidateList(_change_item_validator),
+                _base_validation.Chain(
+                    _md_validation.SkipBlankLines(),
+                    _md_validation.ValidateList(_change_item_validator),
                 ),
             ),
         ),
-        next_validator=_validation.Chain(
-            _validation.SkipBlankLines(),
-            _validation.ValidateEOF(),
+        next_validator=_base_validation.Chain(
+            _md_validation.SkipBlankLines(),
+            _md_validation.ValidateEOF(),
         ),
     ),
 )
@@ -72,7 +73,7 @@ def main(conf: Configuration) -> NoReturn:
     md = Markdown()
     content = conf.file.read_text(encoding="utf-8")
     elements = md.parse(content).children
-    cursor = _validation.Cursor(elements)
+    cursor = _md_validation.MarkdownCursor(elements)
 
     _changelog_validator.validate(cursor)
     print("Validation passed successfully!")
