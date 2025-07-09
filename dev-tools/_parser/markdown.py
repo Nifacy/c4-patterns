@@ -172,11 +172,14 @@ class List[_V](_ElementParser[_V, marko.block.List]):
 
 class Paragraph[_V](_ElementParser[_V, marko.block.Paragraph]):
     def __init__(
-        self, children_parser: base.IParser[_V, marko.element.Element] | None = None
+        self,
+        children_parser: base.IParser[_V, marko.element.Element] | None = None,
+        parse_element: Callable[[_V, marko.block.Paragraph], _V] | None = None,
     ):
         super().__init__(
             expected_type=marko.block.Paragraph,
             children_parser=children_parser,
+            parse_element=parse_element,
         )
 
 
