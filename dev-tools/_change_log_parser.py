@@ -1,23 +1,12 @@
-from __future__ import annotations
-
-import argparse
-from dataclasses import dataclass
-import github
-import itertools
-from pathlib import Path
-import sys
-from typing import Callable, Iterator
-from marko import Markdown
-import re
-
-import marko.inline
-
-import _issue
 import _parser.base
 import _parser.markdown
 import _change_log
 
 import marko.element
+import marko.inline
+
+from typing import Callable
+import re
 
 
 type _ChangeLogParser = _parser.base.IParser[
@@ -72,7 +61,7 @@ def _add_new_version(
     return _change_log.add_version(log, version_id)
 
 
-_changelog_parser: _ChangeLogParser = _parser.base.Chain(
+CHANGE_LOG_PARSER: _ChangeLogParser = _parser.base.Chain(
     _parser.markdown.Header(1, re.compile("Changes")),
     _parser.base.Repeat(
         _parser.base.Chain(
@@ -102,75 +91,6 @@ _changelog_parser: _ChangeLogParser = _parser.base.Chain(
     ),
 )
 
-
-def _extract_issue_links(change_log: _change_log.ChangeLog) -> Iterator[str]:
-    for version_changes in change_log.version_changes:
-        all_version_changes = itertools.chain(
-            version_changes.external_changes,
-            version_changes.internal_changes,
-        )
-
-        for change in all_version_changes:
-            yield change.link
-
-
-@dataclass
-class Configuration:
-    file: Path
-
-
-def parse_args() -> Configuration:
-    parser = argparse.ArgumentParser(description="Validate CHANGELOG file structure")
-    parser.add_argument("file", type=Path, help="Path to the CHANGELOG file")
-
-    arguments = parser.parse_args()
-    return Configuration(file=arguments.file)
-
-
-def main(conf: Configuration) -> None:
-    if not conf.file.exists():
-        raise FileNotFoundError(f"File {conf.file} does not exist")
-
-    print("Validating CHANGELOG structure...")
-    md = Markdown()
-    content = conf.file.read_text(encoding="utf-8")
-    elements = md.parse(content).children
-    cursor = _parser.markdown.MarkdownCursor(elements)
-
-    parse_result, _ = _changelog_parser.parse((_change_log.create_empty_log(), cursor))
-    print("Validation passed successfully!")
-
-    print("Check issues state ...")
-    github_client = github.Github()
-    issue_infos = [
-        (
-            issue_link,
-            _issue.extract_issue_info(
-                github_client=github_client,
-                issue_link=issue_link,
-            ),
-        )
-        for issue_link in _extract_issue_links(parse_result)
-    ]
-
-    for issue_link, issue_info in issue_infos:
-        print(
-            f'- Issue: {issue_link} is {"closed" if issue_info.is_closed else "open"}'
-        )
-
-    all_issues_closed = all(issue_info.is_closed for _, issue_info in issue_infos)
-    if not all_issues_closed:
-        raise ValueError("Not all issues are closed")
-    else:
-        print("All issues are closed, validation passed successfully!")
-
-
-if __name__ == "__main__":
-    configuration = parse_args()
-
-    try:
-        main(configuration)
-        exit(0)
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
-        exit(1)
+__all__ = [
+    "CHANGE_LOG_PARSER",
+]
