@@ -1,0 +1,9 @@
+[project]
+name = "dev-tools"
+version = "1.0"
+description = "CLI for making validation logic in PRs"
+requires-python = "~=3.13"
+dependencies = [
+    "marko==2.1.4",
+    "pygithub==2.6.1",
+]
