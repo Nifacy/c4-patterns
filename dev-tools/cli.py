@@ -4,6 +4,7 @@ from datetime import datetime
 import logging
 from pathlib import Path
 import sys
+import os
 from typing import Final
 
 import _usecases
@@ -47,23 +48,11 @@ def _init_validate_issues_parser(parser: argparse.ArgumentParser) -> None:
         type=int,
         help="List of issue IDs expected to be open. If not specified, all issues must be closed",
     )
-    parser.add_argument(
-        "--github-token",
-        type=str,
-        default=None,
-        help="GitHub token for API access. Required if open IDs are specified",
-    )
 
 
 def _init_validate_issue_added_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("file", type=Path, help="Path to the CHANGELOG file")
     parser.add_argument("id", type=int, help="ID of the issue to check")
-    parser.add_argument(
-        "--github-token",
-        type=str,
-        default=None,
-        help="GitHub token for API access. Required if open IDs are specified",
-    )
 
 
 def _init_changelog_parser(parser: argparse.ArgumentParser) -> None:
@@ -117,12 +106,14 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
                 case "validate-structure":
                     return _usecases.ValidateStructureArgs(file=args.file)
                 case "validate-issues":
+                    github_token = os.getenv("GITHUB_TOKEN")
                     return _usecases.ValidateIssuesArgs(
-                        file=args.file, open_ids=args.open_ids, github_token=args.github_token,
+                        file=args.file, open_ids=args.open_ids, github_token=github_token,
                     )
                 case "validate-issue-added":
+                    github_token = os.getenv("GITHUB_TOKEN")
                     return _usecases.ValidateIssueAddedArgs(
-                        file=args.file, issue_id=args.id, github_token=args.github_token,
+                        file=args.file, issue_id=args.id, github_token=github_token,
                     )
                 case _:
                     raise ValueError(
