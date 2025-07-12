@@ -12,7 +12,7 @@ import _parser.markdown
 
 import _change_log_parser
 import _change_log
-import _issue
+import _github
 
 
 @dataclass
@@ -23,19 +23,19 @@ class ValidateStructureArgs:
 @dataclass
 class ValidateIssuesArgs:
     file: Path
-    open_ids: list[int] | None
+    pr_location: _github.PullRequestLocation
     github_token: str | None
 
 
 @dataclass
 class ValidateIssueAddedArgs:
     file: Path
-    issue_id: int
+    pr_location: _github.PullRequestLocation
     github_token: str | None
 
 
 class ValidationIssueError(Exception):
-    def __init__(self, problem_issues: list[_issue.IssueInfo]) -> None:
+    def __init__(self, problem_issues: list[_github.IssueInfo]) -> None:
         self.problem_issues = problem_issues
         super().__init__(
             f"Validation failed for issues: [\n\t{',\n\t'.join(str(issue) for issue in problem_issues)}\n]"
@@ -106,30 +106,34 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    def _expected_to_be_closed(issue_info: _issue.IssueInfo) -> bool:
-        return args.open_ids is None or issue_info.number not in args.open_ids
-
     with _log_action(log, "Validating Issues states"):
         with _log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
-        with _log_action(log, "Extract issue infos"):
+        with _log_action(log, "Get issue infos"):
             github_client = _init_github_client(args.github_token)
             issue_links = _extract_issue_links(change_log)
             issue_infos = [
-                _issue.extract_issue_info(github_client, issue_link)
+                _github.get_issue_info(github_client, issue_link)
                 for issue_link in issue_links
             ]
 
+        with _log_action(log, "Get linkes issue infos"):
+            pr_info = _github.get_pull_request_info(
+                github_token=args.github_token,
+                pr_location=args.pr_location,
+            )
+            linked_issue_ids = {issue.number for issue in pr_info.pinned_issues}
+
         with _log_action(log, "Check issues state"):
-            problem_issues: list[_issue.IssueInfo] = []
+            problem_issues: list[_github.IssueInfo] = []
 
             for issue_info in issue_infos:
                 log.debug(
                     f"Issue (number={issue_info.number}) state: is_closed={issue_info.is_closed}"
                 )
 
-                expected_to_be_closed = _expected_to_be_closed(issue_info)
+                expected_to_be_closed = issue_info.number not in linked_issue_ids
                 log.debug(f"Expected to be closed: {expected_to_be_closed}")
 
                 if issue_info.is_closed != expected_to_be_closed:
@@ -141,13 +145,13 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
     log.info("All issues states are valid.")
 
 
-def _find_issue_in_last_version_changes(
-    change_log: _change_log.ChangeLog, issue_id: int,
+def _get_last_version_change_issues(
+    change_log: _change_log.ChangeLog,
     github_token: str | None,
     log: logging.Logger,
-) -> _issue.IssueInfo:
+) -> list[_github.IssueInfo]:
     if not change_log.version_changes:
-        raise IssueNotFoundError(issue_id)
+        return []
 
     last_version_changes = change_log.version_changes[0]
     log.debug(f"Last version changes: {last_version_changes}")
@@ -157,14 +161,16 @@ def _find_issue_in_last_version_changes(
         last_version_changes.internal_changes,
     )
 
+    issues: list[_github.IssueInfo] = []
     for change in all_version_changes:
-        issue_info = _issue.extract_issue_info(_init_github_client(github_token), change.link,)
-        log.debug(f"Found issue info: {issue_info}")
+        issues.append(
+            _github.get_issue_info(
+                _init_github_client(github_token),
+                change.link,
+            )
+        )
 
-        if issue_info.number == issue_id:
-            return issue_info
-
-    raise IssueNotFoundError(issue_id)
+    return issues
 
 
 def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> None:
@@ -175,15 +181,37 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
         with _log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
-        with _log_action(log, "Find issue in last version changes"):
-            log.debug(f"Finding issue with ID #{args.issue_id}")
-            issue_info = _find_issue_in_last_version_changes(change_log, args.issue_id, args.github_token, log)
+        with _log_action(log, "Get linked issue infos"):
+            pr_info = _github.get_pull_request_info(
+                github_token=args.github_token,
+                pr_location=args.pr_location,
+            )
+            linked_issue_ids = {issue.number for issue in pr_info.pinned_issues}
 
-        with _log_action(log, "Check issue state"):
-            if issue_info.is_closed:
-                raise ValidationIssueError([issue_info])
+        with _log_action(log, "Get issues in last version changes"):
+            issue_infos = _get_last_version_change_issues(
+                change_log, args.github_token, log
+            )
 
-    log.info(f"Issue #{args.issue_id} state is valid")
+        with _log_action(log, "Check issue states"):
+            problem_issues: list[_github.IssueInfo] = []
+
+            for linked_issue_id in linked_issue_ids:
+                for issue_info in issue_infos:
+                    if issue_info.number != linked_issue_id:
+                        continue
+
+                    if issue_info.is_closed:
+                        problem_issues.append(issue_info)
+                        break
+
+                else:
+                    raise IssueNotFoundError(linked_issue_id)
+
+            if problem_issues:
+                raise ValidationIssueError(problem_issues)
+
+    log.info(f"Linked issue states are valid")
 
 
 __all__ = [

@@ -7,6 +7,7 @@ import sys
 import os
 from typing import Final
 
+import _github
 import _usecases
 
 type _CommandArgs = _usecases.ValidateStructureArgs | _usecases.ValidateIssuesArgs | _usecases.ValidateIssueAddedArgs
@@ -40,19 +41,39 @@ def _init_validate_structure_parser(parser: argparse.ArgumentParser) -> None:
 
 
 def _init_validate_issues_parser(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("file", type=Path, help="Path to the CHANGELOG file")
     parser.add_argument(
-        "--open-ids",
-        nargs="*",
-        default=None,
+        "--file", type=Path, required=True, help="Path to the CHANGELOG file"
+    )
+    parser.add_argument(
+        "--repo",
+        type=str,
+        required=True,
+        help="GitHub repository in the format 'owner/repo'",
+    )
+    parser.add_argument(
+        "--pr-number",
         type=int,
-        help="List of issue IDs expected to be open. If not specified, all issues must be closed",
+        required=True,
+        help="Pull request number to validate issues against",
     )
 
 
 def _init_validate_issue_added_parser(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("file", type=Path, help="Path to the CHANGELOG file")
-    parser.add_argument("id", type=int, help="ID of the issue to check")
+    parser.add_argument(
+        "--file", type=Path, required=True, help="Path to the CHANGELOG file"
+    )
+    parser.add_argument(
+        "--repo",
+        type=str,
+        required=True,
+        help="GitHub repository in the format 'owner/repo'",
+    )
+    parser.add_argument(
+        "--pr-number",
+        type=int,
+        required=True,
+        help="Pull request number to validate issues against",
+    )
 
 
 def _init_changelog_parser(parser: argparse.ArgumentParser) -> None:
@@ -108,12 +129,22 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
                 case "validate-issues":
                     github_token = os.getenv("GITHUB_TOKEN")
                     return _usecases.ValidateIssuesArgs(
-                        file=args.file, open_ids=args.open_ids, github_token=github_token,
+                        file=args.file,
+                        pr_location=_github.PullRequestLocation(
+                            repo=args.repo,
+                            id=args.pr_number,
+                        ),
+                        github_token=github_token,
                     )
                 case "validate-issue-added":
                     github_token = os.getenv("GITHUB_TOKEN")
                     return _usecases.ValidateIssueAddedArgs(
-                        file=args.file, issue_id=args.id, github_token=github_token,
+                        file=args.file,
+                        pr_location=_github.PullRequestLocation(
+                            repo=args.repo,
+                            id=args.pr_number,
+                        ),
+                        github_token=github_token,
                     )
                 case _:
                     raise ValueError(
