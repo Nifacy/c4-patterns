@@ -99,7 +99,7 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
         raise FileNotFoundError(f"File {args.file} does not exist")
 
     def _expected_to_be_closed(issue_info: _issue.IssueInfo) -> bool:
-        return args.open_ids is not None and issue_info.number in args.open_ids
+        return args.open_ids is None or issue_info.number in args.open_ids
 
     with _log_action(log, "Validating Issues states"):
         with _log_action(log, "Parse CHANGELOG file"):
