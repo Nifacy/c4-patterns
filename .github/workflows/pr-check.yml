@@ -6,6 +6,47 @@ on:
     - dev
 
 jobs:
+  validate-changelog:
+    name: Validate changelog
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "0.7.13"
+
+    - name: Prepare 'dev-tools' environment
+      run: uv sync
+      working-directory: dev-tools
+
+    - name: Validate changelog structure
+      run: uv run cli.py validate-structure ${{ github.workspace }}/CHANGES.md
+      working-directory: dev-tools
+
+    - name: Validate all issues closed
+      run: |
+        uv run cli.py changelog validate-issues
+          --file ${{ github.workspace }}
+          --repo ${{ github.repository_owner }}/${{ github.repository.name }}
+          --pr-number ${{ github.event.pull_request.number }}
+      working-directory: dev-tools
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Validate all linked issues
+      run: |
+        uv run cli.py changelog validate-issue-added
+          --file ${{ github.workspace }}
+          --repo ${{ github.repository_owner }}/${{ github.repository.name }}
+          --pr-number ${{ github.event.pull_request.number }}
+      working-directory: dev-tools
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   check-formatting:
     name: Check source code formatting
     runs-on: ubuntu-latest
