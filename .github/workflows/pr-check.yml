@@ -24,7 +24,7 @@ jobs:
       working-directory: dev-tools
 
     - name: Validate changelog structure
-      run: uv run cli.py validate-structure ${{ github.workspace }}/CHANGES.md
+      run: uv run cli.py changelog validate-structure ${{ github.workspace }}/CHANGES.md
       working-directory: dev-tools
 
     - name: Validate all issues closed
