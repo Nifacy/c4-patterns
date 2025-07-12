@@ -193,6 +193,10 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
                 change_log, args.github_token, log
             )
 
+            log.debug("Issue infos:")
+            for issue_info in issue_infos:
+                log.debug(f"\t- {issue_info}")
+
         with _log_action(log, "Check issue states"):
             problem_issues: list[_github.IssueInfo] = []
 
@@ -203,6 +207,9 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
 
                     if issue_info.is_closed:
                         problem_issues.append(issue_info)
+                        break
+                    else:
+                        log.debug(f"Issue #{linked_issue_id} validation passed")
                         break
 
                 else:
