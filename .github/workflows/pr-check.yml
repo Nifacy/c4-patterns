@@ -31,7 +31,7 @@ jobs:
       run: |
         uv run cli.py changelog validate-issues \
           --file ${{ github.workspace }}/CHANGES.md \
-          --repo ${{ github.repository_owner }}/${{ github.repository }} \
+          --repo ${{ github.repository }} \
           --pr-number ${{ github.event.pull_request.number }}
       working-directory: dev-tools
       env:
@@ -41,7 +41,7 @@ jobs:
       run: |
         uv run cli.py changelog validate-issue-added \
           --file ${{ github.workspace }}/CHANGES.md \
-          --repo ${{ github.repository_owner }}/${{ github.repository.name }} \
+          --repo ${{ github.repository }} \
           --pr-number ${{ github.event.pull_request.number }}
       working-directory: dev-tools
       env:
