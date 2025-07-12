@@ -48,7 +48,7 @@ class IssueNotFoundError(Exception):
         self.issue_id = issue_id
 
 
-def _parse_change_log(file: Path) -> _change_log.ChangeLog:
+def _parse_change_log(file: Path, log: logging.Logger) -> _change_log.ChangeLog:
     md = marko.Markdown()
     content = file.read_text(encoding="utf-8")
     elements = md.parse(content).children
@@ -57,6 +57,8 @@ def _parse_change_log(file: Path) -> _change_log.ChangeLog:
     change_log, _ = _change_log_parser.CHANGE_LOG_PARSER.parse(
         (_change_log.create_empty_log(), cursor)
     )
+
+    log.debug(f"Parsed CHANGELOG: {change_log}")
     return change_log
 
 
@@ -89,7 +91,7 @@ def validate_structure(args: ValidateStructureArgs, log: logging.Logger) -> None
         raise FileNotFoundError(f"File {args.file} does not exist")
 
     with _log_action(log, "Validating CHANGELOG structure"):
-        _parse_change_log(args.file)
+        _parse_change_log(args.file, log)
 
     log.info("Validation passed successfully!")
 
@@ -103,7 +105,7 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
 
     with _log_action(log, "Validating Issues states"):
         with _log_action(log, "Parse CHANGELOG file"):
-            change_log = _parse_change_log(args.file)
+            change_log = _parse_change_log(args.file, log)
 
         with _log_action(log, "Extract issue infos"):
             github_client = github.Github()
@@ -159,7 +161,7 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
 
     with _log_action(log, "Validating Issue added"):
         with _log_action(log, "Parse CHANGELOG file"):
-            change_log = _parse_change_log(args.file)
+            change_log = _parse_change_log(args.file, log)
 
         with _log_action(log, "Find issue in last version changes"):
             issue_info = _find_issue_in_last_version_changes(change_log, args.issue_id)

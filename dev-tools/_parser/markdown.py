@@ -159,13 +159,16 @@ class Header[_V](_ElementParser[_V, marko.block.Heading]):
 
 class List[_V](_ElementParser[_V, marko.block.List]):
     def __init__(
-        self, children_parser: base.IParser[_V, marko.element.Element] | None = None
+        self, list_item_parser: base.IParser[_V, marko.element.Element] | None = None
     ):
         super().__init__(
             expected_type=marko.block.List,
-            children_parser=_ElementParser(
-                expected_type=marko.block.ListItem,
-                children_parser=children_parser,
+            children_parser=base.Repeat(
+                parser=_ElementParser(
+                    expected_type=marko.block.ListItem,
+                    children_parser=list_item_parser,
+                ),
+                next_parser=EOF(),
             ),
         )
 
