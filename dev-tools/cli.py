@@ -57,7 +57,7 @@ def _init_validate_issues_parser(parser: argparse.ArgumentParser) -> None:
 
 def _init_validate_issue_added_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("file", type=Path, help="Path to the CHANGELOG file")
-    parser.add_argument("id", help="ID of the issue to check")
+    parser.add_argument("id", type=int, help="ID of the issue to check")
     parser.add_argument(
         "--github-token",
         type=str,

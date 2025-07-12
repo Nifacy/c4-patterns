@@ -144,11 +144,14 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
 def _find_issue_in_last_version_changes(
     change_log: _change_log.ChangeLog, issue_id: int,
     github_token: str | None,
+    log: logging.Logger,
 ) -> _issue.IssueInfo:
     if not change_log.version_changes:
         raise IssueNotFoundError(issue_id)
 
     last_version_changes = change_log.version_changes[0]
+    log.debug(f"Last version changes: {last_version_changes}")
+
     all_version_changes = itertools.chain(
         last_version_changes.external_changes,
         last_version_changes.internal_changes,
@@ -156,6 +159,8 @@ def _find_issue_in_last_version_changes(
 
     for change in all_version_changes:
         issue_info = _issue.extract_issue_info(_init_github_client(github_token), change.link,)
+        log.debug(f"Found issue info: {issue_info}")
+
         if issue_info.number == issue_id:
             return issue_info
 
@@ -171,7 +176,8 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
             change_log = _parse_change_log(args.file, log)
 
         with _log_action(log, "Find issue in last version changes"):
-            issue_info = _find_issue_in_last_version_changes(change_log, args.issue_id, args.github_token)
+            log.debug(f"Finding issue with ID #{args.issue_id}")
+            issue_info = _find_issue_in_last_version_changes(change_log, args.issue_id, args.github_token, log)
 
         with _log_action(log, "Check issue state"):
             if issue_info.is_closed:
