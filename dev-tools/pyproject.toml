@@ -6,4 +6,5 @@ requires-python = "~=3.13"
 dependencies = [
     "marko==2.1.4",
     "pygithub==2.6.1",
+    "python-graphql-client==0.4.3",
 ]
