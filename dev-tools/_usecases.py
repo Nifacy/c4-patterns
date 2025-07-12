@@ -24,12 +24,14 @@ class ValidateStructureArgs:
 class ValidateIssuesArgs:
     file: Path
     open_ids: list[int] | None
+    github_token: str | None
 
 
 @dataclass
 class ValidateIssueAddedArgs:
     file: Path
     issue_id: int
+    github_token: str | None
 
 
 class ValidationIssueError(Exception):
@@ -86,6 +88,10 @@ def _extract_issue_links(change_log: _change_log.ChangeLog) -> Iterator[str]:
             yield change.link
 
 
+def _init_github_client(token: str | None) -> github.Github:
+    return github.Github(token)
+
+
 def validate_structure(args: ValidateStructureArgs, log: logging.Logger) -> None:
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
@@ -101,14 +107,14 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
         raise FileNotFoundError(f"File {args.file} does not exist")
 
     def _expected_to_be_closed(issue_info: _issue.IssueInfo) -> bool:
-        return args.open_ids is None or issue_info.number in args.open_ids
+        return args.open_ids is None or issue_info.number not in args.open_ids
 
     with _log_action(log, "Validating Issues states"):
         with _log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
         with _log_action(log, "Extract issue infos"):
-            github_client = github.Github()
+            github_client = _init_github_client(args.github_token)
             issue_links = _extract_issue_links(change_log)
             issue_infos = [
                 _issue.extract_issue_info(github_client, issue_link)
@@ -136,7 +142,8 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
 
 
 def _find_issue_in_last_version_changes(
-    change_log: _change_log.ChangeLog, issue_id: int
+    change_log: _change_log.ChangeLog, issue_id: int,
+    github_token: str | None,
 ) -> _issue.IssueInfo:
     if not change_log.version_changes:
         raise IssueNotFoundError(issue_id)
@@ -148,7 +155,7 @@ def _find_issue_in_last_version_changes(
     )
 
     for change in all_version_changes:
-        issue_info = _issue.extract_issue_info(github.Github(), change.link)
+        issue_info = _issue.extract_issue_info(_init_github_client(github_token), change.link,)
         if issue_info.number == issue_id:
             return issue_info
 
@@ -164,7 +171,7 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
             change_log = _parse_change_log(args.file, log)
 
         with _log_action(log, "Find issue in last version changes"):
-            issue_info = _find_issue_in_last_version_changes(change_log, args.issue_id)
+            issue_info = _find_issue_in_last_version_changes(change_log, args.issue_id, args.github_token)
 
         with _log_action(log, "Check issue state"):
             if issue_info.is_closed:
