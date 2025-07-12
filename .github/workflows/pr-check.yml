@@ -30,7 +30,7 @@ jobs:
     - name: Validate all issues closed
       run: |
         uv run cli.py changelog validate-issues \
-          --file ${{ github.workspace }} \
+          --file ${{ github.workspace }}/CHANGES.md \
           --repo ${{ github.repository_owner }}/${{ github.repository.name }} \
           --pr-number ${{ github.event.pull_request.number }}
       working-directory: dev-tools
@@ -40,7 +40,7 @@ jobs:
     - name: Validate all linked issues
       run: |
         uv run cli.py changelog validate-issue-added \
-          --file ${{ github.workspace }} \
+          --file ${{ github.workspace }}/CHANGES.md \
           --repo ${{ github.repository_owner }}/${{ github.repository.name }} \
           --pr-number ${{ github.event.pull_request.number }}
       working-directory: dev-tools
