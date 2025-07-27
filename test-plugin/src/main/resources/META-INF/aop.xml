@@ -1,0 +1,10 @@
+<aspectj>
+    <aspects>
+        <aspect name="plugin.MyAspect"/>
+    </aspects>
+
+    <weaver options="-verbose">
+        <include within="app.App"/>
+    </weaver>
+
+</aspectj>
