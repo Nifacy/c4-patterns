@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'com.gradleup.shadow' version '8.3.5'
+    id 'io.freefair.aspectj' version '8.14'
     id 'com.diffplug.spotless' version '7.0.4'
 }
 
@@ -24,6 +25,8 @@ repositories {
 
 dependencies {
     implementation 'org.javassist:javassist:3.30.2-GA'
+    compileOnly 'org.aspectj:aspectjrt:1.9.24'
+    compileOnly 'com.structurizr:structurizr-dsl:3.2.1'
     implementation "io.github.nifacy.c4patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
 }
 
