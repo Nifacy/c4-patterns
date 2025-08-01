@@ -13,9 +13,7 @@ public class PatternSyntaxPlugin {
     static class StructurizrTransformer implements ClassFileTransformer {
 
         private static final List<ClassPatcher> patchers = List
-            .of(
-                new PluginDslContextPatcher()
-            );
+            .of();
 
         @Override
         public byte[] transform(

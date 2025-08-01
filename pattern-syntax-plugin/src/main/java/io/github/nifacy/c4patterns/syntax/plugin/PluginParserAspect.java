@@ -25,10 +25,7 @@ public class PluginParserAspect {
         Object tokens
     )
         throws Throwable {
-        Field patternParserField = context.getClass().getDeclaredField("patternParser");
-        patternParserField.setAccessible(true);
-
-        PatternParser patternParser = (PatternParser) patternParserField.get(context);
+        PatternParser patternParser = ((PluginDslContextAspect.PatternParserField) context).getPatternParser();
         if (patternParser != null) {
             patternParser.parseBlockLine(PatchUtils.toTokenList(tokens));
         } else {
