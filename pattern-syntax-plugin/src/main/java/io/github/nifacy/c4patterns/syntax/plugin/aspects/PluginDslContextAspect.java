@@ -1,7 +1,8 @@
-package io.github.nifacy.c4patterns.syntax.plugin;
+package io.github.nifacy.c4patterns.syntax.plugin.aspects;
 
 import io.github.nifacy.c4patterns.syntax.parser.PatternParser;
 import io.github.nifacy.c4patterns.syntax.parser.PluginCallInfo;
+import io.github.nifacy.c4patterns.syntax.plugin.PatternCallWrapper;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -11,13 +12,7 @@ import java.lang.reflect.Field;
 
 @Aspect
 public class PluginDslContextAspect {
-    public interface PatternParserField {
-        PatternParser getPatternParser();
-
-        void setPatternParser(PatternParser parser);
-    }
-
-    public static class PatternParserFieldImpl implements PatternParserField {
+    public static class PatternParserHolderImpl implements PatternParserHolder {
         private PatternParser patternParser;
 
         @Override
@@ -32,9 +27,9 @@ public class PluginDslContextAspect {
     }
 
     @DeclareParents(
-        value = "com.structurizr.dsl.PluginDslContext+", defaultImpl = PatternParserFieldImpl.class
+        value = "com.structurizr.dsl.PluginDslContext+", defaultImpl = PatternParserHolderImpl.class
     )
-    public static PatternParserField patternParser;
+    public static PatternParserHolder patternParser;
 
     @After(
         """
@@ -44,7 +39,7 @@ public class PluginDslContextAspect {
             """
     )
     public void afterConstructor(Object ctx) throws Throwable {
-        PatternParser parser = ((PatternParserField) ctx).getPatternParser();
+        PatternParser parser = ((PatternParserHolder) ctx).getPatternParser();
 
         Field fqnField = ctx.getClass().getDeclaredField("fullyQualifiedClassName");
         fqnField.setAccessible(true);
@@ -53,7 +48,7 @@ public class PluginDslContextAspect {
         if (parser == null && PatternCallWrapper.isWrappedPluginName(fullyQualifiedClassName)) {
             PatternParser newParser = new PatternParser();
             newParser.parseHeader(PatternCallWrapper.unwrapFromPluginName(fullyQualifiedClassName));
-            ((PatternParserField) ctx).setPatternParser(newParser);
+            ((PatternParserHolder) ctx).setPatternParser(newParser);
         }
     }
 
@@ -64,7 +59,7 @@ public class PluginDslContextAspect {
             """
     )
     public void beforeEnd(Object ctx) throws Throwable {
-        PatternParser parser = ((PatternParserField) ctx).getPatternParser();
+        PatternParser parser = ((PatternParserHolder) ctx).getPatternParser();
 
         if (parser == null) {
             return;

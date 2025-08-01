@@ -1,8 +1,8 @@
 <aspectj>
     <aspects>
-        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.TokenizerAspect"/>
-        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.PluginParserAspect"/>
-        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.PluginDslContextAspect"/>
+        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.aspects.TokenizerAspect"/>
+        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.aspects.PluginParserAspect"/>
+        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.aspects.PluginDslContextAspect"/>
     </aspects>
 
     <weaver options="-verbose">

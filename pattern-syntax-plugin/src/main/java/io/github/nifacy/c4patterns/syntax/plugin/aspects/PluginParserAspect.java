@@ -1,11 +1,10 @@
-package io.github.nifacy.c4patterns.syntax.plugin;
+package io.github.nifacy.c4patterns.syntax.plugin.aspects;
 
 import io.github.nifacy.c4patterns.syntax.parser.PatternParser;
+import io.github.nifacy.c4patterns.syntax.plugin.PatchUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-
-import java.lang.reflect.Field;
 
 @Aspect
 public class PluginParserAspect {
@@ -16,7 +15,8 @@ public class PluginParserAspect {
                         com.structurizr.dsl.PluginDslContext,
                         com.structurizr.dsl.Tokens
                     )
-                ) && args(context, tokens)
+                )
+                && args(context, tokens)
             """
     )
     public void aroundParseParameter(
@@ -25,7 +25,7 @@ public class PluginParserAspect {
         Object tokens
     )
         throws Throwable {
-        PatternParser patternParser = ((PluginDslContextAspect.PatternParserField) context).getPatternParser();
+        PatternParser patternParser = ((PatternParserHolder) context).getPatternParser();
         if (patternParser != null) {
             patternParser.parseBlockLine(PatchUtils.toTokenList(tokens));
         } else {

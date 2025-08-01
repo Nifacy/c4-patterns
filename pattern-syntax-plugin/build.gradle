@@ -24,7 +24,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.javassist:javassist:3.30.2-GA'
     compileOnly 'org.aspectj:aspectjrt:1.9.24'
     compileOnly 'com.structurizr:structurizr-dsl:3.2.1'
     implementation "io.github.nifacy.c4patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
@@ -47,16 +46,7 @@ shadowJar {
     archiveClassifier = ''
     archiveVersion = project.version
 
-    manifest {
-        attributes(
-                'Premain-Class': 'io.github.nifacy.c4patterns.syntax.plugin.PatternSyntaxPlugin',
-                'Can-Redefine-Classes': 'true',
-                'Can-Retransform-Classes': 'true'
-        )
-    }
-
     dependencies {
-        include(dependency('org.javassist:javassist:.*'))
         include(dependency('io.github.nifacy.c4patterns:pattern-syntax-parser:.*'))
     }
 }
