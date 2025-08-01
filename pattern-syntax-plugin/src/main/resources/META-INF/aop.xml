@@ -1,6 +1,7 @@
 <aspectj>
     <aspects>
         <aspect name="io.github.nifacy.c4patterns.syntax.plugin.TokenizerAspect"/>
+        <aspect name="io.github.nifacy.c4patterns.syntax.plugin.PluginParserAspect"/>
     </aspects>
 
     <weaver options="-verbose">
