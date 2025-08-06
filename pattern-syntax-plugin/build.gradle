@@ -35,6 +35,12 @@ java {
     }
 }
 
+compileAspectj {
+    ajcOptions {
+        compilerArgs += '-Xlint:adviceDidNotMatch=ignore'
+    }
+}
+
 spotless {
     java {
         eclipse().configFile("${rootProject.projectDir}/../common/formatter-config.xml")
