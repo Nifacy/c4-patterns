@@ -1,18 +1,30 @@
 import contextlib
 from dataclasses import dataclass
 import itertools
+import json
 import logging
 from pathlib import Path
-from typing import Iterator
+import tempfile
+from typing import Final, Iterator
+import zipfile
 
 import github
 import marko
+import requests
 
+import _exporters
 import _parser.markdown
 
 import _change_log_parser
 import _change_log
 import _github
+
+
+_STRUCTURIZR_CLI_RELEASE_URL: Final = (
+    "https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip"
+)
+_STRUCTURIZR_CLI_ARCHIVE_NAME: Final = "structurizr-cli.zip"
+_STRUCTURIZR_CLI_DIR: Final = "structurizr-cli"
 
 
 @dataclass
@@ -32,6 +44,14 @@ class ValidateIssueAddedArgs:
     file: Path
     pr_location: _github.PullRequestLocation
     github_token: str | None
+
+
+@dataclass
+class TestSyntaxPluginArgs:
+    syntax_plugin_path: Path
+    java_path: Path
+    workspace_path: Path
+    expected_file: Path
 
 
 class ValidationIssueError(Exception):
@@ -221,13 +241,82 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
     log.info(f"Linked issue states are valid")
 
 
+def _install_file(
+    url: str, output_path: Path, log: logging.Logger, *, percent_threshold: float = 10.0
+) -> None:
+    with requests.get(url, stream=True) as response:
+        with output_path.open("wb") as file:
+            total_installed_bytes = 0
+            last_logged_percent = 0.0
+            content_length = response.headers.get("Content-Length", None)
+            file_size = int(content_length) if content_length is not None else None
+
+            for chunk in response.iter_content(chunk_size=8_192):
+                if not isinstance(chunk, bytes) or not chunk:
+                    continue
+
+                file.write(chunk)
+                total_installed_bytes += len(chunk)
+
+                if file_size is None:
+                    continue
+
+                percent = total_installed_bytes / file_size * 100.0
+
+                if percent - last_logged_percent < percent_threshold:
+                    continue
+
+                log.debug(f"Installed {percent:.2f}%")
+                last_logged_percent = percent
+
+
+def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir_path = Path(temp_dir)
+        structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
+        structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
+
+        with _log_action(log, "Test pattern-syntax-plugin work"):
+            with _log_action(log, "Install structurizr cli"):
+                _install_file(
+                    url=_STRUCTURIZR_CLI_RELEASE_URL,
+                    output_path=structurizr_archive_path,
+                    log=log,
+                )
+
+            with _log_action(log, "Extract structurizr cli"):
+                with zipfile.ZipFile(structurizr_archive_path, "r") as archive:
+                    archive.extractall(structurizr_cli_dir)
+
+            with _log_action(log, "Export workspace to JSON"):
+                structurizr_cli = _exporters.StructurizrCli(
+                    structurizr_cli_dir=structurizr_cli_dir,
+                    java_path=args.java_path,
+                    syntax_plugin_path=args.syntax_plugin_path,
+                )
+
+                exported_workspace = structurizr_cli.export_to_json(args.workspace_path)
+
+            with _log_action(log, "Check with etalone JSON file"):
+                with args.expected_file.open("r", encoding="utf-8") as file:
+                    expected_data = json.load(file)
+
+                assert (
+                    exported_workspace == expected_data
+                ), "Exported workspace not equals to expected"
+
+        log.info("All checks passed!")
+
+
 __all__ = [
     "validate_structure",
     "validate_issues",
     "validate_issue_added",
+    "test_syntax_plugin",
     "ValidateStructureArgs",
     "ValidateIssuesArgs",
     "ValidateIssueAddedArgs",
+    "TestSyntaxPluginArgs",
     "ValidationIssueError",
     "IssueNotFoundError",
 ]

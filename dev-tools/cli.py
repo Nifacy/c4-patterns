@@ -5,12 +5,17 @@ import logging
 from pathlib import Path
 import sys
 import os
-from typing import Final
+from typing import Final, Union
 
 import _github
 import _usecases
 
-type _CommandArgs = _usecases.ValidateStructureArgs | _usecases.ValidateIssuesArgs | _usecases.ValidateIssueAddedArgs
+type _CommandArgs = Union[
+    _usecases.ValidateStructureArgs,
+    _usecases.ValidateIssuesArgs,
+    _usecases.ValidateIssueAddedArgs,
+    _usecases.TestSyntaxPluginArgs,
+]
 
 
 @dataclass
@@ -100,6 +105,36 @@ def _init_changelog_parser(parser: argparse.ArgumentParser) -> None:
     _init_validate_issue_added_parser(validate_issue_added_parser)
 
 
+def _init_integration_tests_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--plugin-path",
+        type=Path,
+        required=True,
+        help="Path to pattern-syntax-plugin JAR archive",
+    )
+
+    parser.add_argument(
+        "--java-path",
+        type=Path,
+        required=True,
+        help="Path to java binary directory",
+    )
+
+    parser.add_argument(
+        "--workspace-path",
+        type=Path,
+        required=True,
+        help="Path to Structurizr workspace file",
+    )
+
+    parser.add_argument(
+        "--expected_file",
+        type=Path,
+        required=True,
+        help="Path to etalone exported JSON workspace file",
+    )
+
+
 def _init_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Dev Tools CLI")
 
@@ -116,6 +151,12 @@ def _init_parser() -> argparse.ArgumentParser:
         "changelog", help="Changelog validation commands"
     )
     _init_changelog_parser(changelog_parser)
+
+    integration_test_parser = subparsers.add_parser(
+        "integration-tests",
+        help="Run integration tests for patter-syntax-plugin",
+    )
+    _init_integration_tests_parser(integration_test_parser)
 
     return parser
 
@@ -150,6 +191,13 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
                     raise ValueError(
                         f"Unknown changelog command: {args.changelog_command}"
                     )
+        case "integration-tests":
+            return _usecases.TestSyntaxPluginArgs(
+                syntax_plugin_path=args.plugin_path,
+                java_path=args.java_path,
+                workspace_path=args.workspace_path,
+                expected_file=args.expected_file,
+            )
         case _:
             raise ValueError(f"Unknown command: {args.command}")
 
@@ -209,6 +257,8 @@ def main(log: logging.Logger, args: _ParsedArgs) -> None:
             _usecases.validate_issues(args.command_args, log)
         case _usecases.ValidateIssueAddedArgs():
             _usecases.validate_issue_added(args.command_args, log)
+        case _usecases.TestSyntaxPluginArgs():
+            _usecases.test_syntax_plugin(args.command_args, log)
 
 
 if __name__ == "__main__":
