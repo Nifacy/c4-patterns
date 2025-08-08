@@ -128,10 +128,10 @@ def _init_integration_tests_parser(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument(
-        "--expected_file",
+        "--test-case-config",
         type=Path,
         required=True,
-        help="Path to etalone exported JSON workspace file",
+        help="Path to test case configuration file",
     )
 
 
@@ -196,7 +196,7 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
                 syntax_plugin_path=args.plugin_path,
                 java_path=args.java_path,
                 workspace_path=args.workspace_path,
-                expected_file=args.expected_file,
+                test_case_config_file=args.test_case_config,
             )
         case _:
             raise ValueError(f"Unknown command: {args.command}")

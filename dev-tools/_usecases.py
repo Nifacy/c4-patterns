@@ -16,6 +16,7 @@ import _exporters
 import _parser.markdown
 
 import _change_log_parser
+import _integration_test_runner
 import _change_log
 import _github
 
@@ -51,7 +52,7 @@ class TestSyntaxPluginArgs:
     syntax_plugin_path: Path
     java_path: Path
     workspace_path: Path
-    expected_file: Path
+    test_case_config_file: Path
 
 
 class ValidationIssueError(Exception):
@@ -270,6 +271,35 @@ def _install_file(
                 last_logged_percent = percent
 
 
+def _extract_test_case_config_from_file(
+    config_file: Path,
+) -> _integration_test_runner.TestCaseConfiguration:
+    raw_config = json.loads(config_file.read_text())
+
+    match raw_config:
+        case {"result": "success", "export_result_file": str(result_file_path)}:
+            return _integration_test_runner.SuccessTestCase(
+                expected_export_result_file=Path(result_file_path),
+            )
+
+        case {
+            "result": "fail",
+            "exit_code": int(exit_code),
+            "error_message": str(error_message),
+        }:
+            return _integration_test_runner.FailTestCase(
+                exit_code=exit_code,
+                error_message=error_message,
+            )
+
+        case _:
+            raise ValueError(
+                "Unknown tets case configuration:\n{}".format(
+                    json.dumps(raw_config, indent=4)
+                )
+            )
+
+
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir_path = Path(temp_dir)
@@ -277,6 +307,11 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
         structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
 
         with _log_action(log, "Test pattern-syntax-plugin work"):
+            with _log_action(log, "Extract test case configuration"):
+                test_case_config = _extract_test_case_config_from_file(
+                    args.test_case_config_file
+                )
+
             with _log_action(log, "Install structurizr cli"):
                 _install_file(
                     url=_STRUCTURIZR_CLI_RELEASE_URL,
@@ -288,22 +323,16 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
                 with zipfile.ZipFile(structurizr_archive_path, "r") as archive:
                     archive.extractall(structurizr_cli_dir)
 
-            with _log_action(log, "Export workspace to JSON"):
-                structurizr_cli = _exporters.StructurizrCli(
-                    structurizr_cli_dir=structurizr_cli_dir,
-                    java_path=args.java_path,
-                    syntax_plugin_path=args.syntax_plugin_path,
+            with _log_action(log, "Run integration test"):
+                _integration_test_runner.run_integration_test_case(
+                    config=test_case_config,
+                    exporter=_exporters.StructurizrCli(
+                        structurizr_cli_dir=structurizr_cli_dir,
+                        java_path=args.java_path,
+                        syntax_plugin_path=args.syntax_plugin_path,
+                    ),
+                    workspace_path=args.workspace_path,
                 )
-
-                exported_workspace = structurizr_cli.export_to_json(args.workspace_path)
-
-            with _log_action(log, "Check with etalone JSON file"):
-                with args.expected_file.open("r", encoding="utf-8") as file:
-                    expected_data = json.load(file)
-
-                assert (
-                    exported_workspace == expected_data
-                ), "Exported workspace not equals to expected"
 
         log.info("All checks passed!")
 
