@@ -1,0 +1,33 @@
+[
+    {
+        "name": "database-per-service",
+        "workspace": "<workspace>/databasePerService.dsl",
+        "result": "fail",
+        "exit_code": 1,
+        "error_message": "Database 'Payment Service' is already used by 'Order Application'"
+    },
+    {
+        "name": "layered",
+        "workspace": "<workspace>/layered.dsl",
+        "result": "success",
+        "export_result_file": "example-config/results/layered.json"
+    },
+    {
+        "name": "reverse-proxy",
+        "workspace": "<workspace>/reverseProxy.dsl",
+        "result": "success",
+        "export_result_file": "example-config/results/reverseProxy.json"
+    },
+    {
+        "name": "saga",
+        "workspace": "<workspace>/saga.dsl",
+        "result": "success",
+        "export_result_file": "example-config/results/saga.json"
+    },
+    {
+        "name": "service-registry",
+        "workspace": "<workspace>/serviceRegistry.dsl",
+        "result": "success",
+        "export_result_file": "example-config/results/serviceRegistry.json"
+    }
+]
