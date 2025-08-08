@@ -6,27 +6,32 @@ import _exporters
 
 
 @dataclass
-class SuccessTestCase:
+class _CommonTestCaseConfiguration:
+    name: str
+
+
+@dataclass
+class SuccessTestCase(_CommonTestCaseConfiguration):
     expected_export_result_file: Path
 
 
 @dataclass
-class FailTestCase:
+class FailTestCase(_CommonTestCaseConfiguration):
     exit_code: int
     error_message: str
 
 
-type TestCaseConfiguration = SuccessTestCase | FailTestCase
+type TestCaseRunConfiguration = SuccessTestCase | FailTestCase
 
 
 def run_integration_test_case(
-    config: TestCaseConfiguration,
+    run_config: TestCaseRunConfiguration,
     exporter: _exporters.StructurizrWorkspaceExporter,
     workspace_path: Path,
 ) -> None:
     export_result = exporter.export_to_json(workspace_path)
 
-    match config:
+    match run_config:
         case SuccessTestCase(expected_export_result_file=expected_result_file):
             expected_result = json.loads(expected_result_file.read_text())
 
@@ -53,5 +58,5 @@ __all__ = [
     "FailTestCase",
     "run_integration_test_case",
     "SuccessTestCase",
-    "TestCaseConfiguration",
+    "TestCaseRunConfiguration",
 ]

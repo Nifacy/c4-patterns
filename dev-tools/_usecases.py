@@ -29,6 +29,13 @@ _STRUCTURIZR_CLI_DIR: Final = "structurizr-cli"
 
 
 @dataclass
+class _TestCaseInfo:
+    name: str
+    workspace_path: Path
+    run_config: _integration_test_runner.TestCaseRunConfiguration
+
+
+@dataclass
 class ValidateStructureArgs:
     file: Path
 
@@ -51,7 +58,6 @@ class ValidateIssueAddedArgs:
 class TestSyntaxPluginArgs:
     syntax_plugin_path: Path
     java_path: Path
-    workspace_path: Path
     test_case_config_file: Path
 
 
@@ -271,33 +277,56 @@ def _install_file(
                 last_logged_percent = percent
 
 
-def _extract_test_case_config_from_file(
-    config_file: Path,
-) -> _integration_test_runner.TestCaseConfiguration:
-    raw_config = json.loads(config_file.read_text())
+def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]:
+    raw_infos = json.loads(config_file.read_text())
+    test_cases_info: list[_TestCaseInfo] = []
 
-    match raw_config:
-        case {"result": "success", "export_result_file": str(result_file_path)}:
-            return _integration_test_runner.SuccessTestCase(
-                expected_export_result_file=Path(result_file_path),
-            )
-
-        case {
-            "result": "fail",
-            "exit_code": int(exit_code),
-            "error_message": str(error_message),
-        }:
-            return _integration_test_runner.FailTestCase(
-                exit_code=exit_code,
-                error_message=error_message,
-            )
-
-        case _:
-            raise ValueError(
-                "Unknown tets case configuration:\n{}".format(
-                    json.dumps(raw_config, indent=4)
+    for raw_info in raw_infos:
+        match raw_info:
+            case {
+                "result": "success",
+                "name": str(name),
+                "workspace": str(workspace_path),
+                "export_result_file": str(result_file_path),
+            }:
+                test_cases_info.append(
+                    _TestCaseInfo(
+                        name=name,
+                        workspace_path=Path(workspace_path),
+                        run_config=_integration_test_runner.SuccessTestCase(
+                            name=name,
+                            expected_export_result_file=Path(result_file_path),
+                        ),
+                    )
                 )
-            )
+
+            case {
+                "result": "fail",
+                "name": str(name),
+                "workspace": str(workspace_path),
+                "exit_code": int(exit_code),
+                "error_message": str(error_message),
+            }:
+                test_cases_info.append(
+                    _TestCaseInfo(
+                        name=name,
+                        workspace_path=Path(workspace_path),
+                        run_config=_integration_test_runner.FailTestCase(
+                            name=name,
+                            exit_code=exit_code,
+                            error_message=error_message,
+                        ),
+                    )
+                )
+
+            case _:
+                raise ValueError(
+                    "Unknown tets case configuration:\n{}".format(
+                        json.dumps(raw_info, indent=4)
+                    )
+                )
+
+    return test_cases_info
 
 
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
@@ -308,7 +337,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
 
         with _log_action(log, "Test pattern-syntax-plugin work"):
             with _log_action(log, "Extract test case configuration"):
-                test_case_config = _extract_test_case_config_from_file(
+                test_cases_info = _extract_test_cases_info_from_file(
                     args.test_case_config_file
                 )
 
@@ -323,16 +352,21 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
                 with zipfile.ZipFile(structurizr_archive_path, "r") as archive:
                     archive.extractall(structurizr_cli_dir)
 
-            with _log_action(log, "Run integration test"):
-                _integration_test_runner.run_integration_test_case(
-                    config=test_case_config,
-                    exporter=_exporters.StructurizrCli(
-                        structurizr_cli_dir=structurizr_cli_dir,
-                        java_path=args.java_path,
-                        syntax_plugin_path=args.syntax_plugin_path,
-                    ),
-                    workspace_path=args.workspace_path,
-                )
+            with _log_action(log, "Run integration tests"):
+                for test_case_info in test_cases_info:
+                    log.info(f"Run '{test_case_info.name}' test case ...")
+
+                    _integration_test_runner.run_integration_test_case(
+                        run_config=test_case_info.run_config,
+                        exporter=_exporters.StructurizrCli(
+                            structurizr_cli_dir=structurizr_cli_dir,
+                            java_path=args.java_path,
+                            syntax_plugin_path=args.syntax_plugin_path,
+                        ),
+                        workspace_path=test_case_info.workspace_path,
+                    )
+
+                    log.info(f"Run '{test_case_info.name}' test case ... ok")
 
         log.info("All checks passed!")
 
