@@ -5,7 +5,7 @@ import json
 import logging
 from pathlib import Path
 import tempfile
-from typing import Final, Iterator
+from typing import Final, Iterator, Protocol
 import zipfile
 
 import github
@@ -21,9 +21,6 @@ import _change_log
 import _github
 
 
-_STRUCTURIZR_CLI_RELEASE_URL: Final = (
-    "https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip"
-)
 _STRUCTURIZR_CLI_ARCHIVE_NAME: Final = "structurizr-cli.zip"
 _STRUCTURIZR_CLI_DIR: Final = "structurizr-cli"
 
@@ -33,6 +30,17 @@ class _TestCaseInfo:
     name: str
     workspace_path: Path
     run_config: _integration_test_runner.TestCaseRunConfiguration
+
+
+@dataclass
+class _StructurizrCliRelease:
+    version: str
+    url: str
+
+
+class _StructurizrCliExporterFactory(Protocol):
+    def __call__(self, java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrCli:
+        ...
 
 
 @dataclass
@@ -58,6 +66,7 @@ class ValidateIssueAddedArgs:
 class TestSyntaxPluginArgs:
     syntax_plugin_path: Path
     java_path: Path
+    env_config: Path
     test_case_config_file: Path
 
 
@@ -329,44 +338,86 @@ def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]
     return test_cases_info
 
 
+def _extract_structurizr_cli_releases_from_file(config_file: Path) -> list[_StructurizrCliRelease]:
+    raw_data = json.loads(config_file.read_text())
+    releases: list[_StructurizrCliRelease] = []
+
+    match raw_data:
+        case [*raw_releases]:
+            for raw_release in raw_releases:
+                match raw_release:
+                    case {"version": str(version), "url": str(url)}:
+                        releases.append(_StructurizrCliRelease(
+                            version=version,
+                            url=url,
+                        ))
+                    case _:
+                        raise ValueError("Unknown release configuration:\n{}".format(json.dumps(raw_release, indent=4)))
+        case _:
+            raise ValueError("Unknown releases configuration:\n{}".format(json.dumps(raw_data, indent=4)))
+
+    return releases
+
+
+def _get_structurizr_cli_exporter_factory(release: _StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _StructurizrCliExporterFactory:
+    structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
+    structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
+
+    with _log_action(log, "Install structurizr cli"):
+        _install_file(
+            url=release.url,
+            output_path=structurizr_archive_path,
+            log=log,
+        )
+
+    with _log_action(log, "Extract structurizr cli"):
+        with zipfile.ZipFile(structurizr_archive_path, "r") as archive:
+            archive.extractall(structurizr_cli_dir)
+
+    def _create_structurizr_cli_exporter(java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrCli:
+        return _exporters.StructurizrCli(
+            structurizr_cli_dir=structurizr_cli_dir,
+            java_path=java_path,
+            syntax_plugin_path=syntax_plugin_path,
+        )
+
+    return _create_structurizr_cli_exporter
+
+
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir_path = Path(temp_dir)
-        structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
-        structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
+    structurizr_cli_releases = _extract_structurizr_cli_releases_from_file(args.env_config)
 
-        with _log_action(log, "Test pattern-syntax-plugin work"):
-            with _log_action(log, "Extract test case configuration"):
-                test_cases_info = _extract_test_cases_info_from_file(
-                    args.test_case_config_file
+    with _log_action(log, "Extract test case configuration"):
+        test_cases_info = _extract_test_cases_info_from_file(
+            args.test_case_config_file
+        )
+
+    for structurizr_cli_release in structurizr_cli_releases:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_dir_path = Path(temp_dir)
+
+            with _log_action(log, "Test pattern-syntax-plugin work in specified environment"):
+                log.debug(
+                    "Context:\n"
+                    f"- Exporter: StructurizrCli(version={structurizr_cli_release.version})\n"
                 )
 
-            with _log_action(log, "Install structurizr cli"):
-                _install_file(
-                    url=_STRUCTURIZR_CLI_RELEASE_URL,
-                    output_path=structurizr_archive_path,
-                    log=log,
-                )
+                structurizr_cli_exporter_factory = _get_structurizr_cli_exporter_factory(structurizr_cli_release, temp_dir_path, log)
 
-            with _log_action(log, "Extract structurizr cli"):
-                with zipfile.ZipFile(structurizr_archive_path, "r") as archive:
-                    archive.extractall(structurizr_cli_dir)
+                with _log_action(log, "Run integration tests"):
+                    for test_case_info in test_cases_info:
+                        log.info(f"Run '{test_case_info.name}' test case ...")
 
-            with _log_action(log, "Run integration tests"):
-                for test_case_info in test_cases_info:
-                    log.info(f"Run '{test_case_info.name}' test case ...")
+                        _integration_test_runner.run_integration_test_case(
+                            run_config=test_case_info.run_config,
+                            exporter=structurizr_cli_exporter_factory(
+                                java_path=args.java_path,
+                                syntax_plugin_path=args.syntax_plugin_path,
+                            ),
+                            workspace_path=test_case_info.workspace_path,
+                        )
 
-                    _integration_test_runner.run_integration_test_case(
-                        run_config=test_case_info.run_config,
-                        exporter=_exporters.StructurizrCli(
-                            structurizr_cli_dir=structurizr_cli_dir,
-                            java_path=args.java_path,
-                            syntax_plugin_path=args.syntax_plugin_path,
-                        ),
-                        workspace_path=test_case_info.workspace_path,
-                    )
-
-                    log.info(f"Run '{test_case_info.name}' test case ... ok")
+                        log.info(f"Run '{test_case_info.name}' test case ... ok")
 
         log.info("All checks passed!")
 

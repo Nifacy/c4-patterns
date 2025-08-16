@@ -121,6 +121,13 @@ def _init_integration_tests_parser(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument(
+        "--env-config",
+        type=Path,
+        required=True,
+        help="Path to test environment configuration file",
+    )
+
+    parser.add_argument(
         "--test-case-config",
         type=Path,
         required=True,
@@ -188,6 +195,7 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
             return _usecases.TestSyntaxPluginArgs(
                 syntax_plugin_path=args.plugin_path,
                 java_path=args.java_path,
+                env_config=args.env_config,
                 test_case_config_file=args.test_case_config,
             )
         case _:
