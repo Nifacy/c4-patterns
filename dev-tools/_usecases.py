@@ -5,7 +5,7 @@ import json
 import logging
 from pathlib import Path
 import tempfile
-from typing import Final, Iterator, Protocol
+from typing import Any, Final, Iterator, Protocol
 import zipfile
 
 import github
@@ -37,9 +37,24 @@ class _StructurizrCliRelease:
     version: str
     url: str
 
+    def __str__(self) -> str:
+        return f"StructurizrCli(version={self.version})"
 
-class _StructurizrCliExporterFactory(Protocol):
-    def __call__(self, java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrCli:
+
+@dataclass
+class _StructurizrLiteRelease:
+    version: str
+    url: str
+
+    def __str__(self) -> str:
+        return f"StructurizrLite(version={self.version})"
+
+
+type _ExporterRelease = _StructurizrCliRelease | _StructurizrLiteRelease
+
+
+class _ExporterFactory(Protocol):
+    def __call__(self, java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrWorkspaceExporter:
         ...
 
 
@@ -338,28 +353,41 @@ def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]
     return test_cases_info
 
 
-def _extract_structurizr_cli_releases_from_file(config_file: Path) -> list[_StructurizrCliRelease]:
+def _get_exporter_release(raw_release: Any) -> _ExporterRelease | None:
+    match raw_release:
+        case {"type": "structurizr-cli", "version": str(version), "url": str(url)}:
+            return _StructurizrCliRelease(
+                version=version,
+                url=url,
+            )
+        case {"type": "structurizr-lite", "version": str(version), "url": str(url)}:
+            return _StructurizrLiteRelease(
+                version=version,
+                url=url,
+            )
+        case _:
+            return None
+
+
+def _extract_exporter_releases_from_file(config_file: Path) -> list[_ExporterRelease]:
     raw_data = json.loads(config_file.read_text())
-    releases: list[_StructurizrCliRelease] = []
+    releases: list[_ExporterRelease] = []
 
     match raw_data:
         case [*raw_releases]:
             for raw_release in raw_releases:
-                match raw_release:
-                    case {"version": str(version), "url": str(url)}:
-                        releases.append(_StructurizrCliRelease(
-                            version=version,
-                            url=url,
-                        ))
-                    case _:
-                        raise ValueError("Unknown release configuration:\n{}".format(json.dumps(raw_release, indent=4)))
+                release = _get_exporter_release(raw_release)
+                if release is not None:
+                    releases.append(release)
+                else:
+                    raise ValueError("Unknown release configuration:\n{}".format(json.dumps(raw_release, indent=4)))
         case _:
             raise ValueError("Unknown releases configuration:\n{}".format(json.dumps(raw_data, indent=4)))
 
     return releases
 
 
-def _get_structurizr_cli_exporter_factory(release: _StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _StructurizrCliExporterFactory:
+def _get_structurizr_cli_exporter_factory(release: _StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
     structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
 
@@ -384,25 +412,56 @@ def _get_structurizr_cli_exporter_factory(release: _StructurizrCliRelease, temp_
     return _create_structurizr_cli_exporter
 
 
+def _get_structurizr_lite_exporter_factory(release: _StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+    structurizr_lite_dir = temp_dir_path / "structurizr-lite"
+    structurizr_lite_dir.mkdir()
+
+    structurizr_lite_war_file = structurizr_lite_dir / "structurizr-lite.war"
+
+    with _log_action(log, "Install structurizr lite"):
+        _install_file(
+            url=release.url,
+            output_path=structurizr_lite_war_file,
+            log=log,
+        )
+
+    def _create_structurizr_lite_exporter(java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrLite:
+        return _exporters.StructurizrLite(
+            structurizr_lite_dir=structurizr_lite_dir,
+            java_path=java_path,
+            syntax_plugin_path=syntax_plugin_path,
+        )
+
+    return _create_structurizr_lite_exporter
+
+
+def _get_exporter_factory(release: _ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+    match release:
+        case _StructurizrCliRelease() as cli_release:
+            return _get_structurizr_cli_exporter_factory(cli_release, temp_dir_path, log)
+        case _StructurizrLiteRelease() as lite_release:
+            return _get_structurizr_lite_exporter_factory(lite_release, temp_dir_path, log)
+
+
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
-    structurizr_cli_releases = _extract_structurizr_cli_releases_from_file(args.env_config)
+    exporter_releases = _extract_exporter_releases_from_file(args.env_config)
 
     with _log_action(log, "Extract test case configuration"):
         test_cases_info = _extract_test_cases_info_from_file(
             args.test_case_config_file
         )
 
-    for structurizr_cli_release in structurizr_cli_releases:
+    for exporter_release in exporter_releases:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir_path = Path(temp_dir)
 
             with _log_action(log, "Test pattern-syntax-plugin work in specified environment"):
                 log.debug(
                     "Context:\n"
-                    f"- Exporter: StructurizrCli(version={structurizr_cli_release.version})\n"
+                    f"- Exporter: {exporter_release}\n"
                 )
 
-                structurizr_cli_exporter_factory = _get_structurizr_cli_exporter_factory(structurizr_cli_release, temp_dir_path, log)
+                exporter_factory = _get_exporter_factory(exporter_release, temp_dir_path, log)
 
                 with _log_action(log, "Run integration tests"):
                     for test_case_info in test_cases_info:
@@ -410,7 +469,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
 
                         _integration_test_runner.run_integration_test_case(
                             run_config=test_case_info.run_config,
-                            exporter=structurizr_cli_exporter_factory(
+                            exporter=exporter_factory(
                                 java_path=args.java_path,
                                 syntax_plugin_path=args.syntax_plugin_path,
                             ),
