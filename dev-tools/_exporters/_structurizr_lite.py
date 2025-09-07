@@ -1,65 +1,263 @@
-import json
+import base64
+import copy
+from dataclasses import dataclass
+import hashlib
+import hmac
+import io
+import re
+import shutil
 import subprocess
+import sys
+import time
+from typing import Any, Final
+import urllib.parse
 
 import requests
+import urllib
 from ._interface import StructurizrWorkspaceExporter
 from ._interface import ExportResult
 from ._interface import ExportedWorkspace
 from ._interface import ExportFailure
+import os
 
 from pathlib import Path
 
-import shutil
+
+class _ConnectionTimeout(Exception):
+    def __init__(self):
+        super().__init__("Connection to the structurizr lite server timeout reached")
+
+
+class _ServerProcess:
+    def __init__(self, process: subprocess.Popen):
+        self.__process = process
+        self.__stdout_buffer = io.BytesIO()
+        self.__stderr_buffer = io.BytesIO()
+
+    @property
+    def process(self) -> subprocess.Popen:
+        return self.__process
+
+    @property
+    def stdout(self) -> bytes:
+        assert self.__process.stdout is not None
+        self.__stdout_buffer.write(self.__process.stdout.read())
+        return self.__stdout_buffer.getvalue()
+
+    @property
+    def stderr(self) -> bytes:
+        assert self.__process.stderr is not None
+        self.__stderr_buffer.write(self.__process.stderr.read())
+        return self.__stderr_buffer.getvalue()
+
+
+@dataclass
+class _Credentials:
+    api_key: str
+    api_secret: str
+
+
+@dataclass
+class _AuthData:
+    auth_token: str
+    nonce: str
 
 
 class StructurizrLite(StructurizrWorkspaceExporter):
+    _STRUCTURIZR_LITE_FILENAME: Final = "structurizr-lite.war"
+    _CONTEXT_FOLDER_NAME: Final = "context"
+    _WORKSPACE_FOLDER_NAME: Final = "workspace"
+    _JAVA_EXECUTABLE: Final = "java.exe" if sys.platform == "win32" else "java"
+
+    _SERVER_ADDRESS: Final = "http://localhost:8080"
+    _WORKSPACE_DEFAULT_FILE_NAME: Final = "workspace.dsl"
+
+    _STRUCTURIZR_API_CLIENT_CALL_PATTERN: Final = re.compile(
+        r"StructurizrApiClient\((.+)\)",
+        flags=re.DOTALL,
+    )
+
     def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path):
         self.__structurizr_lite_dir = structurizr_lite_dir
         self.__java_path = java_path
         self.__syntax_plugin_path = syntax_plugin_path
 
-        self.__structurizr_lite_jar = self.__structurizr_lite_dir / "structurizr-lite.war"
-        if not self.__structurizr_lite_jar.exists():
-            raise FileNotFoundError(f"Structurizr Lite JAR not found at {self.__structurizr_lite_jar}")
+        self.__structurizr_lite_jar = self.__get_structurizr_lite_jar_path(self.__structurizr_lite_dir)
+        self.__context_dir = self.__get_context_directory(self.__structurizr_lite_dir)
+        self.__workspace_dir = self.__get_workspace_directory(self.__context_dir)
+        self.__server_process = self.__start_server()
 
     def export_to_json(self, workspace_path: Path) -> ExportResult:
-        workspace_dir = self.__structurizr_lite_dir / ".workspace"
-        shutil.copytree(workspace_path.parent, workspace_dir)
+        if self.__workspace_dir.exists():
+            shutil.rmtree(self.__workspace_dir)
+
+        shutil.copytree(workspace_path.parent, self.__workspace_dir, dirs_exist_ok=True)
+        shutil.copyfile(workspace_path, self.__workspace_dir / self._WORKSPACE_DEFAULT_FILE_NAME)
+
+        print("[StructurizrLite] Get workspace ...")
+
+        print("[StructurizrLite] Get credentials ...")
+        credentials = self.__get_credentials()
+        print(f"[StructurizrLite] Credentials: {credentials}")
 
         try:
-            command = [
-                "java",
-                f"-javaagent:{self.__syntax_plugin_path}",
-                "-jar",
-                str(self.__structurizr_lite_jar),
-                str(workspace_dir),
-            ]
-
-            process = subprocess.Popen(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env={
-                    "PATH": str(self.__java_path.absolute()),
-                    "STRUCTURIZR_WORKSPACE_FILENAME": workspace_path.stem,
-                }
-            )
-            assert process.stdout is not None
-            assert process.stderr is not None
-
-            response = requests.get("http://localhost:8080/")
-            if response.status_code != 200:
-                process.kill()
+            print("[StructurizrLite] Get workspace ...")
+            workspace = self.__get_workspace(credentials)
+            print(f"[StructurizrLite] workspace: {workspace}")
+            return workspace
+        except requests.HTTPError as e:
+            if e.response.status_code == 400:
                 return ExportFailure(
-                    exit_code=process.wait(),
-                    stdout=process.stdout.read().decode(errors="replace"),
-                    stderr=process.stderr.read().decode(errors="replace"),
+                    exit_code=e.response.status_code,
+                    stdout=self.__server_process.stdout.decode(errors="replace"),
+                    stderr=self.__server_process.stderr.decode(errors="replace"),
                 )
 
-            output_file = workspace_dir / (workspace_path.stem + ".json")
-            if not output_file.exists():
-                raise FileNotFoundError(f"Expected output file not found at {output_file}")
+    def close(self) -> None:
+        print("[StructurizrLite] Close ...")
+        self.__server_process.process.kill()
+        self.__server_process.process.wait()
 
-            return ExportedWorkspace(json.loads(output_file.read_text(encoding="utf-8")))
-        finally:
-            shutil.rmtree(workspace_dir)
+        if self.__context_dir.exists():
+            shutil.rmtree(self.__context_dir)
+        print("[StructurizrLite] Close ... ok")
+
+    @classmethod
+    def __get_structurizr_lite_jar_path(cls, structurizr_lite_dir: Path) -> Path:
+        structurizr_lite_jar = structurizr_lite_dir / cls._STRUCTURIZR_LITE_FILENAME
+        if not structurizr_lite_jar.exists():
+            raise FileNotFoundError(f"Structurizr Lite JAR not found at {structurizr_lite_jar}")
+        return structurizr_lite_jar
+
+    def __get_context_directory(self, structurizr_lite_dir: Path) -> Path:
+        context_dir = structurizr_lite_dir / self._CONTEXT_FOLDER_NAME
+        if context_dir.exists():
+            shutil.rmtree(context_dir)
+        return context_dir
+
+    def __get_workspace_directory(self, context_dir: Path) -> Path:
+        workspace_dir = context_dir / "workspace"
+        workspace_dir.mkdir(parents=True)
+        return workspace_dir
+
+    def __start_server(self) -> _ServerProcess:
+        print("Start Structurize Liter server ...")
+        command = [
+            str((self.__java_path / self._JAVA_EXECUTABLE).absolute()),
+            f"-javaagent:{self.__syntax_plugin_path}",
+            "-jar",
+            str(self.__structurizr_lite_jar),
+            str(self.__context_dir),
+        ]
+
+        env = os.environ.copy()
+        env["STRUCTURIZR_WORKSPACE_PATH"] = self._WORKSPACE_FOLDER_NAME
+
+        print(f"Command: {command}")
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+        )
+
+        try:
+            self.__wait_for_connection()
+        except _ConnectionTimeout:
+            process.kill()
+            process.wait()
+            raise
+
+        return _ServerProcess(process)
+
+    def __wait_for_connection(self, timeout: float = 60.0) -> None:
+        elapsed_time = 0.0
+
+        while True:
+            start_time = time.time()
+
+            try:
+                print(f"[Connection] Try health check server ...")
+                response = requests.get(
+                    urllib.parse.urljoin(self._SERVER_ADDRESS, "/health"),
+                    timeout=timeout - elapsed_time,
+                )
+                response.raise_for_status()
+                return
+
+            except (ConnectionError, OSError) as e:
+                elapsed_time += time.time() - start_time
+                print(f"[Connection] Health check failed. Elapsed time: {elapsed_time}")
+
+                if elapsed_time >= timeout:
+                    raise _ConnectionTimeout() from e
+
+    def __get_credentials(self) -> _Credentials:
+        response = requests.get("http://localhost:8080/workspace/diagrams")
+        response.raise_for_status()
+
+        page_html_content = response.content.decode()
+        match = self._STRUCTURIZR_API_CLIENT_CALL_PATTERN.search(page_html_content)
+
+        if match is None:
+            raise RuntimeError("Unexpectedly, structurizr client's api call was not found")
+
+        match_group = match.group(1)
+        args = (line.strip().rstrip(',') for line in match_group.splitlines())
+        args = tuple(line for line in args if line.strip())
+
+        return _Credentials(
+            api_key=args[2].strip('"'),
+            api_secret=args[3].strip('"'),
+        )
+
+    def __get_workspace(self, credentials: _Credentials) -> ExportedWorkspace:
+        auth_data = self.__get_auth_data(
+            api_key=credentials.api_key,
+            api_secret=credentials.api_secret,
+            workspace_id=1,
+        )
+
+        response = requests.get(
+            "http://localhost:8080/api/workspace/1",
+            headers={
+                "X-Authorization": auth_data.auth_token,
+                "Nonce": auth_data.nonce,
+            },
+        )
+
+        response.raise_for_status()
+        return self.__normalize_workspace(response.json())
+
+
+    def __get_auth_data(self, api_key: str, api_secret: str, workspace_id: int) -> _AuthData:
+        nonce = str(int(time.time() * 1_000))
+        content_md5 = hashlib.md5(b"").hexdigest()
+
+        content_parts = ("GET", f"/api/workspace/{workspace_id}", content_md5, "", nonce)
+        content = "".join(f"{el}\n" for el in content_parts)
+
+        signature = hmac.new(
+            key=api_secret.encode("utf-8"),
+            msg=content.encode("utf-8"),
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+
+        signature_encoded = base64.b64encode(signature.encode()).decode("utf-8")
+        auth_token = f"{api_key}:{signature_encoded}"
+
+        return _AuthData(
+            auth_token=auth_token,
+            nonce=nonce,
+        )
+
+    def __normalize_workspace(self, workspace: dict[str, Any]) -> dict[str, Any]:
+        normalized_workspace = copy.deepcopy(workspace)
+        normalized_workspace.pop("lastModifiedDate", None)
+        normalized_workspace["id"] = 0
+
+        views = normalized_workspace.get("views", {})
+        views_config = views.get("configuration", {})
+        views_config.pop("lastSavedView", None)
+
+        return normalized_workspace
