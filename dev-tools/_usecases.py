@@ -430,6 +430,8 @@ def _get_structurizr_lite_exporter_factory(release: _StructurizrLiteRelease, tem
             structurizr_lite_dir=structurizr_lite_dir,
             java_path=java_path,
             syntax_plugin_path=syntax_plugin_path,
+            stdout_path=temp_dir_path / "stdout.txt",
+            stderr_path=temp_dir_path / "stderr.txt",
         )
 
     return _create_structurizr_lite_exporter
@@ -467,14 +469,19 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
                     for test_case_info in test_cases_info:
                         log.info(f"Run '{test_case_info.name}' test case ...")
 
-                        _integration_test_runner.run_integration_test_case(
-                            run_config=test_case_info.run_config,
-                            exporter=exporter_factory(
-                                java_path=args.java_path,
-                                syntax_plugin_path=args.syntax_plugin_path,
-                            ),
-                            workspace_path=test_case_info.workspace_path,
+                        exporter = exporter_factory(
+                            java_path=args.java_path,
+                            syntax_plugin_path=args.syntax_plugin_path,
                         )
+
+                        try:
+                            _integration_test_runner.run_integration_test_case(
+                                run_config=test_case_info.run_config,
+                                exporter=exporter,
+                                workspace_path=test_case_info.workspace_path,
+                            )
+                        finally:
+                            exporter.close()
 
                         log.info(f"Run '{test_case_info.name}' test case ... ok")
 

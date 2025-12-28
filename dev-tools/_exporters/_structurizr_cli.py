@@ -61,3 +61,6 @@ class StructurizrCli(StructurizrWorkspaceExporter):
         converted_workspace_path = output_dir / f"{workspace_name}.json"
 
         return ExportedWorkspace(json.loads(converted_workspace_path.read_text()))
+
+    def close(self) -> None:
+        pass

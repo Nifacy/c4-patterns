@@ -1,0 +1,12 @@
+[
+    {
+        "type": "structurizr-cli",
+        "version": "v2025.05.28",
+        "url": "https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip"
+    },
+    {
+        "type": "structurizr-cli",
+        "version": "v2025.03.28",
+        "url": "https://github.com/structurizr/cli/releases/download/v2025.03.28/structurizr-cli.zip"
+    }
+]

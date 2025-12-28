@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import hashlib
 import hmac
 import io
+import json
 import re
 import shutil
 import subprocess
@@ -26,29 +27,6 @@ from pathlib import Path
 class _ConnectionTimeout(Exception):
     def __init__(self):
         super().__init__("Connection to the structurizr lite server timeout reached")
-
-
-class _ServerProcess:
-    def __init__(self, process: subprocess.Popen):
-        self.__process = process
-        self.__stdout_buffer = io.BytesIO()
-        self.__stderr_buffer = io.BytesIO()
-
-    @property
-    def process(self) -> subprocess.Popen:
-        return self.__process
-
-    @property
-    def stdout(self) -> bytes:
-        assert self.__process.stdout is not None
-        self.__stdout_buffer.write(self.__process.stdout.read())
-        return self.__stdout_buffer.getvalue()
-
-    @property
-    def stderr(self) -> bytes:
-        assert self.__process.stderr is not None
-        self.__stderr_buffer.write(self.__process.stderr.read())
-        return self.__stderr_buffer.getvalue()
 
 
 @dataclass
@@ -77,7 +55,7 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         flags=re.DOTALL,
     )
 
-    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path):
+    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path, stdout_path: Path, stderr_path: Path):
         self.__structurizr_lite_dir = structurizr_lite_dir
         self.__java_path = java_path
         self.__syntax_plugin_path = syntax_plugin_path
@@ -85,7 +63,8 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         self.__structurizr_lite_jar = self.__get_structurizr_lite_jar_path(self.__structurizr_lite_dir)
         self.__context_dir = self.__get_context_directory(self.__structurizr_lite_dir)
         self.__workspace_dir = self.__get_workspace_directory(self.__context_dir)
-        self.__server_process = self.__start_server()
+
+        self.__server_process, self.__stdout, self.__stderr = self.__start_server(stdout_path, stderr_path)
 
     def export_to_json(self, workspace_path: Path) -> ExportResult:
         if self.__workspace_dir.exists():
@@ -103,23 +82,27 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         try:
             print("[StructurizrLite] Get workspace ...")
             workspace = self.__get_workspace(credentials)
-            print(f"[StructurizrLite] workspace: {workspace}")
+            print(f"[StructurizrLite] workspace: {json.dumps(workspace)}")
             return workspace
         except requests.HTTPError as e:
             if e.response.status_code == 400:
                 return ExportFailure(
                     exit_code=e.response.status_code,
-                    stdout=self.__server_process.stdout.decode(errors="replace"),
-                    stderr=self.__server_process.stderr.decode(errors="replace"),
+                    stdout="",
+                    stderr=e.response.content.decode("utf-8"),
                 )
 
     def close(self) -> None:
         print("[StructurizrLite] Close ...")
-        self.__server_process.process.kill()
-        self.__server_process.process.wait()
+        self.__server_process.kill()
+        self.__server_process.wait()
 
         if self.__context_dir.exists():
             shutil.rmtree(self.__context_dir)
+
+        self.__stdout.close()
+        self.__stderr.close()
+
         print("[StructurizrLite] Close ... ok")
 
     @classmethod
@@ -140,7 +123,7 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         workspace_dir.mkdir(parents=True)
         return workspace_dir
 
-    def __start_server(self) -> _ServerProcess:
+    def __start_server(self, stdout_path: Path, stderr_path: Path) -> tuple[subprocess.Popen, io.BufferedWriter, io.BufferedWriter]:
         print("Start Structurize Liter server ...")
         command = [
             str((self.__java_path / self._JAVA_EXECUTABLE).absolute()),
@@ -153,11 +136,14 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         env = os.environ.copy()
         env["STRUCTURIZR_WORKSPACE_PATH"] = self._WORKSPACE_FOLDER_NAME
 
+        stdout = stdout_path.open('wb')
+        stderr = stderr_path.open('wb')
+
         print(f"Command: {command}")
         process = subprocess.Popen(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=stdout,
+            stderr=stderr,
             env=env,
         )
 
@@ -166,9 +152,11 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         except _ConnectionTimeout:
             process.kill()
             process.wait()
+            stdout.close()
+            stderr.close()
             raise
 
-        return _ServerProcess(process)
+        return process, stdout, stderr
 
     def __wait_for_connection(self, timeout: float = 60.0) -> None:
         elapsed_time = 0.0
