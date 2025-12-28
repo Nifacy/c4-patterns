@@ -6,6 +6,7 @@ import requests
 import shutil
 
 
+# TODO: add support of case when 2 urls have same cache key
 class _CacheManager:
     def __init__(self, cache_path: Path) -> None:
         self.__cache_path = self.__validate_cache_path(cache_path)
