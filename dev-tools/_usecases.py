@@ -12,6 +12,7 @@ import github
 import marko
 import requests
 
+from _cached_downloader import CachedDownloader
 import _exporters
 import _parser.markdown
 
@@ -21,8 +22,10 @@ import _change_log
 import _github
 
 
+_CUR_DIR_PATH: Final = Path(__file__).parent
 _STRUCTURIZR_CLI_ARCHIVE_NAME: Final = "structurizr-cli.zip"
 _STRUCTURIZR_CLI_DIR: Final = "structurizr-cli"
+_DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".cache"
 
 
 @dataclass
@@ -387,15 +390,14 @@ def _extract_exporter_releases_from_file(config_file: Path) -> list[_ExporterRel
     return releases
 
 
-def _get_structurizr_cli_exporter_factory(release: _StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release: _StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
     structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
 
     with _log_action(log, "Install structurizr cli"):
-        _install_file(
+        downloader.install_file(
             url=release.url,
             output_path=structurizr_archive_path,
-            log=log,
         )
 
     with _log_action(log, "Extract structurizr cli"):
@@ -412,17 +414,16 @@ def _get_structurizr_cli_exporter_factory(release: _StructurizrCliRelease, temp_
     return _create_structurizr_cli_exporter
 
 
-def _get_structurizr_lite_exporter_factory(release: _StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release: _StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     structurizr_lite_dir = temp_dir_path / "structurizr-lite"
     structurizr_lite_dir.mkdir()
 
     structurizr_lite_war_file = structurizr_lite_dir / "structurizr-lite.war"
 
     with _log_action(log, "Install structurizr lite"):
-        _install_file(
+        downloader.install_file(
             url=release.url,
             output_path=structurizr_lite_war_file,
-            log=log,
         )
 
     def _create_structurizr_lite_exporter(java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrLite:
@@ -437,16 +438,17 @@ def _get_structurizr_lite_exporter_factory(release: _StructurizrLiteRelease, tem
     return _create_structurizr_lite_exporter
 
 
-def _get_exporter_factory(release: _ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+def _get_exporter_factory(downloader: CachedDownloader, release: _ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     match release:
         case _StructurizrCliRelease() as cli_release:
-            return _get_structurizr_cli_exporter_factory(cli_release, temp_dir_path, log)
+            return _get_structurizr_cli_exporter_factory(downloader, cli_release, temp_dir_path, log)
         case _StructurizrLiteRelease() as lite_release:
-            return _get_structurizr_lite_exporter_factory(lite_release, temp_dir_path, log)
+            return _get_structurizr_lite_exporter_factory(downloader, lite_release, temp_dir_path, log)
 
 
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
     exporter_releases = _extract_exporter_releases_from_file(args.env_config)
+    downloader = CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
 
     with _log_action(log, "Extract test case configuration"):
         test_cases_info = _extract_test_cases_info_from_file(
@@ -463,7 +465,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
                     f"- Exporter: {exporter_release}\n"
                 )
 
-                exporter_factory = _get_exporter_factory(exporter_release, temp_dir_path, log)
+                exporter_factory = _get_exporter_factory(downloader, exporter_release, temp_dir_path, log)
 
                 with _log_action(log, "Run integration tests"):
                     for test_case_info in test_cases_info:
