@@ -5,6 +5,8 @@ from typing import Final
 import requests
 import shutil
 
+import _logging_tools
+
 
 # TODO: add support of case when 2 urls have same cache key
 class _CacheManager:
@@ -31,10 +33,10 @@ class _CacheManager:
 
 
 class CachedDownloader:
-    _LOG_PREFIX: Final = "[CachedDownloader]"
+    _LOG_PREFIX: Final = "CachedDownloader"
 
     def __init__(self, log: logging.Logger, cache_path: Path) -> None:
-        self.__log = log
+        self.__log = _logging_tools.with_prefix(log, self._LOG_PREFIX)
         self.__cache_manager = _CacheManager(cache_path)
 
     def install_file(
@@ -44,15 +46,15 @@ class CachedDownloader:
         *,
         percent_threshold: float = 10.0,
     ) -> None:
-        self.__log.debug(f"{self._LOG_PREFIX} Install content from url '{url}' ...")
+        self.__log.debug(f"Install content from url '{url}' ...")
 
         cache_key = self.__get_cache_key(url)
         if (cache_path := self.__cache_manager.get_cache_file(cache_key)) is not None:
-            self.__log.debug(f"{self._LOG_PREFIX} Use cached content")
+            self.__log.debug("Use cached content")
             shutil.copy(cache_path, output_path)
 
         else:
-            self.__log.debug(f"{self._LOG_PREFIX} Not found cached value. Install from server ...")
+            self.__log.debug("Not found cached value. Install from server ...")
 
             with requests.get(url, stream=True) as response:
                 with output_path.open("wb") as file:
@@ -76,11 +78,11 @@ class CachedDownloader:
                         if percent - last_logged_percent < percent_threshold:
                             continue
 
-                        self.__log.debug(f"{self._LOG_PREFIX} Installed {percent:.2f}%")
+                        self.__log.debug("Installed {percent:.2f}%")
                         last_logged_percent = percent
 
             self.__cache_manager.save_cache_file(cache_key, output_path)
-            self.__log.debug(f"{self._LOG_PREFIX} Cache saved")
+            self.__log.debug("Cache saved")
 
     @staticmethod
     def __get_cache_key(url: str) -> str:
