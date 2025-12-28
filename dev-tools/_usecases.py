@@ -10,7 +10,6 @@ import zipfile
 
 import github
 import marko
-import requests
 
 from _cached_downloader import CachedDownloader
 import _exporters
@@ -275,35 +274,6 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
     log.info(f"Linked issue states are valid")
 
 
-def _install_file(
-    url: str, output_path: Path, log: logging.Logger, *, percent_threshold: float = 10.0
-) -> None:
-    with requests.get(url, stream=True) as response:
-        with output_path.open("wb") as file:
-            total_installed_bytes = 0
-            last_logged_percent = 0.0
-            content_length = response.headers.get("Content-Length", None)
-            file_size = int(content_length) if content_length is not None else None
-
-            for chunk in response.iter_content(chunk_size=8_192):
-                if not isinstance(chunk, bytes) or not chunk:
-                    continue
-
-                file.write(chunk)
-                total_installed_bytes += len(chunk)
-
-                if file_size is None:
-                    continue
-
-                percent = total_installed_bytes / file_size * 100.0
-
-                if percent - last_logged_percent < percent_threshold:
-                    continue
-
-                log.debug(f"Installed {percent:.2f}%")
-                last_logged_percent = percent
-
-
 def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]:
     raw_infos = json.loads(config_file.read_text())
     test_cases_info: list[_TestCaseInfo] = []
@@ -401,7 +371,7 @@ def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release:
         )
 
     with _log_action(log, "Extract structurizr cli"):
-        with zipfile.ZipFile(structurizr_archive_path, "r") as archive:
+        with zipfile.ZipFile(structurizr_archive_path) as archive:
             archive.extractall(structurizr_cli_dir)
 
     def _create_structurizr_cli_exporter(java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrCli:
