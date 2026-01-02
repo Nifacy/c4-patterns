@@ -5,15 +5,15 @@ import _integration_test_runner
 
 
 @dataclass(frozen=True, slots=True)
-class _TestCaseInfo:
+class TestCaseInfo:
     name: str
     workspace_path: Path
     run_config: _integration_test_runner.TestCaseRunConfiguration
 
 
-def extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]:
+def extract_test_cases_info_from_file(config_file: Path) -> list[TestCaseInfo]:
     raw_infos = json.loads(config_file.read_text())
-    test_cases_info: list[_TestCaseInfo] = []
+    test_cases_info: list[TestCaseInfo] = []
 
     for raw_info in raw_infos:
         match raw_info:
@@ -24,7 +24,7 @@ def extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]:
                 "export_result_file": str(result_file_path),
             }:
                 test_cases_info.append(
-                    _TestCaseInfo(
+                    TestCaseInfo(
                         name=name,
                         workspace_path=Path(workspace_path),
                         run_config=_integration_test_runner.SuccessTestCase(
@@ -41,7 +41,7 @@ def extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]:
                 "error_message": str(error_message),
             }:
                 test_cases_info.append(
-                    _TestCaseInfo(
+                    TestCaseInfo(
                         name=name,
                         workspace_path=Path(workspace_path),
                         run_config=_integration_test_runner.FailTestCase(
