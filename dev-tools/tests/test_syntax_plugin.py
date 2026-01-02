@@ -21,11 +21,6 @@ def test_case_config_file(request: pytest.FixtureRequest) -> Path:
 
 
 @pytest.fixture
-def env_config(request: pytest.FixtureRequest) -> Path:
-    return request.config.getoption('--env-config')
-
-
-@pytest.fixture
 def syntax_plugin_path(request: pytest.FixtureRequest) -> Path:
     return request.config.getoption('--plugin-path')
 
@@ -35,10 +30,8 @@ def java_path(request: pytest.FixtureRequest) -> Path:
     return request.config.getoption('--java-path')
 
 
-def test_syntax_plugin(env_config: Path, test_case_config_file: Path, syntax_plugin_path: Path, java_path: Path) -> None:
+def test_syntax_plugin(exporter_release: _release_extractor.ExporterRelease, test_case_config_file: Path, syntax_plugin_path: Path, java_path: Path) -> None:
     log = logging.getLogger()
-
-    exporter_releases = _release_extractor.extract_exporter_releases_from_file(env_config)
     downloader = _cached_downloader.CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
 
     with _logging_tools.log_action(log, "Extract test case configuration"):
@@ -46,36 +39,33 @@ def test_syntax_plugin(env_config: Path, test_case_config_file: Path, syntax_plu
             test_case_config_file
         )
 
-    for exporter_release in exporter_releases:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_dir_path = Path(temp_dir)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir_path = Path(temp_dir)
 
-            with _logging_tools.log_action(log, "Test pattern-syntax-plugin work in specified environment"):
-                log.debug(
-                    "Context:\n"
-                    f"- Exporter: {exporter_release}\n"
-                )
+        with _logging_tools.log_action(log, "Test pattern-syntax-plugin work in specified environment"):
+            log.debug(
+                "Context:\n"
+                f"- Exporter: {exporter_release}\n"
+            )
 
-                exporter_factory = _exporter_factory.get_exporter_factory(downloader, exporter_release, temp_dir_path, log)
+            exporter_factory = _exporter_factory.get_exporter_factory(downloader, exporter_release, temp_dir_path, log)
 
-                with _logging_tools.log_action(log, "Run integration tests"):
-                    for test_case_info in test_cases_info:
-                        log.info(f"Run '{test_case_info.name}' test case ...")
+            with _logging_tools.log_action(log, "Run integration tests"):
+                for test_case_info in test_cases_info:
+                    log.info(f"Run '{test_case_info.name}' test case ...")
 
-                        exporter = exporter_factory(
-                            java_path=java_path,
-                            syntax_plugin_path=syntax_plugin_path,
+                    exporter = exporter_factory(
+                        java_path=java_path,
+                        syntax_plugin_path=syntax_plugin_path,
+                    )
+
+                    try:
+                        _integration_test_runner.run_integration_test_case(
+                            run_config=test_case_info.run_config,
+                            exporter=exporter,
+                            workspace_path=test_case_info.workspace_path,
                         )
+                    finally:
+                        exporter.close()
 
-                        try:
-                            _integration_test_runner.run_integration_test_case(
-                                run_config=test_case_info.run_config,
-                                exporter=exporter,
-                                workspace_path=test_case_info.workspace_path,
-                            )
-                        finally:
-                            exporter.close()
-
-                        log.info(f"Run '{test_case_info.name}' test case ... ok")
-
-        log.info("All checks passed!")
+                    log.info(f"Run '{test_case_info.name}' test case ... ok")

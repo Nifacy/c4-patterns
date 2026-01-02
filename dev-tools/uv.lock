@@ -190,7 +190,7 @@ dependencies = [
 requires-dist = [
     { name = "marko", specifier = "==2.1.4" },
     { name = "pygithub", specifier = "==2.6.1" },
-    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest", specifier = "==9.0.2" },
     { name = "python-graphql-client", specifier = "==0.4.3" },
     { name = "requests", specifier = "==2.32.4" },
 ]
