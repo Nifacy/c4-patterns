@@ -301,7 +301,6 @@ def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]
                 "result": "fail",
                 "name": str(name),
                 "workspace": str(workspace_path),
-                "exit_code": int(exit_code),
                 "error_message": str(error_message),
             }:
                 test_cases_info.append(
@@ -310,7 +309,6 @@ def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]
                         workspace_path=Path(workspace_path),
                         run_config=_integration_test_runner.FailTestCase(
                             name=name,
-                            exit_code=exit_code,
                             error_message=error_message,
                         ),
                     )

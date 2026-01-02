@@ -8,9 +8,7 @@ ExportedWorkspace = NewType("ExportedWorkspace", dict[str, Any])
 
 @dataclass(frozen=True, slots=True)
 class ExportFailure:
-    exit_code: int
-    stdout: str
-    stderr: str
+    error_message: str
 
 
 type ExportResult = ExportedWorkspace | ExportFailure

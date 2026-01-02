@@ -46,16 +46,17 @@ class StructurizrCli(StructurizrWorkspaceExporter):
                 "PATH": str(self.__java_path.absolute()),
                 "JAVA_TOOL_OPTIONS": f"-javaagent:{self.__syntax_plugin_path.absolute()}",
             },
+            encoding="utf-8",
+            errors="replace",
         )
 
         try:
             process.check_returncode()
         except subprocess.SubprocessError:
-            return ExportFailure(
-                exit_code=process.returncode,
-                stdout=process.stdout.decode(errors="replace"),
-                stderr=process.stderr.decode(errors="replace"),
-            )
+            if process.returncode == 1:
+                return ExportFailure(process.stderr)
+
+            raise
 
         workspace_name = workspace_path.name.removesuffix(workspace_path.suffix)
         converted_workspace_path = output_dir / f"{workspace_name}.json"

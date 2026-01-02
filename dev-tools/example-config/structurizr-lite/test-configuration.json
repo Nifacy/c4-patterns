@@ -3,7 +3,6 @@
         "name": "database-per-service",
         "workspace": ".bin/examples/databasePerService.dsl",
         "result": "fail",
-        "exit_code": 400,
         "error_message": "Database 'Payment Service' is already used by 'Order Application'"
     },
     {

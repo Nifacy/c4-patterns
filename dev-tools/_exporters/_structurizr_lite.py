@@ -86,11 +86,9 @@ class StructurizrLite(StructurizrWorkspaceExporter):
             return workspace
         except requests.HTTPError as e:
             if e.response.status_code == 400:
-                return ExportFailure(
-                    exit_code=e.response.status_code,
-                    stdout="",
-                    stderr=e.response.content.decode("utf-8"),
-                )
+                return ExportFailure(e.response.content.decode("utf-8"))
+
+            raise e
 
     def close(self) -> None:
         print("[StructurizrLite] Close ...")

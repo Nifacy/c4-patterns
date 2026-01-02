@@ -17,7 +17,6 @@ class SuccessTestCase(_CommonTestCaseConfiguration):
 
 @dataclass
 class FailTestCase(_CommonTestCaseConfiguration):
-    exit_code: int
     error_message: str
 
 
@@ -42,15 +41,12 @@ def run_integration_test_case(
                 export_result == expected_result
             ), "Exported workspace not equals to expected"
 
-        case FailTestCase(exit_code=exit_code, error_message=error_message):
+        case FailTestCase(error_message=error_message):
             assert isinstance(
                 export_result, _exporters.ExportFailure
             ), "Export result unexpected success"
             assert (
-                export_result.exit_code == exit_code
-            ), "Exit code not equals to expected"
-            assert (
-                error_message in export_result.stderr
+                error_message in export_result.error_message
             ), "Stderr doesn't contain error message"
 
 
