@@ -4,7 +4,7 @@ import json
 import logging
 from pathlib import Path
 import tempfile
-from typing import Any, Final, Iterator, Protocol
+from typing import Final, Iterator, Protocol
 import zipfile
 
 import github
@@ -19,6 +19,7 @@ import _integration_test_runner
 import _change_log
 import _github
 import _logging_tools
+import _release_extractor
 
 
 _CUR_DIR_PATH: Final = Path(__file__).parent
@@ -32,27 +33,6 @@ class _TestCaseInfo:
     name: str
     workspace_path: Path
     run_config: _integration_test_runner.TestCaseRunConfiguration
-
-
-@dataclass
-class _StructurizrCliRelease:
-    version: str
-    url: str
-
-    def __str__(self) -> str:
-        return f"StructurizrCli(version={self.version})"
-
-
-@dataclass
-class _StructurizrLiteRelease:
-    version: str
-    url: str
-
-    def __str__(self) -> str:
-        return f"StructurizrLite(version={self.version})"
-
-
-type _ExporterRelease = _StructurizrCliRelease | _StructurizrLiteRelease
 
 
 class _ExporterFactory(Protocol):
@@ -311,41 +291,7 @@ def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]
     return test_cases_info
 
 
-def _get_exporter_release(raw_release: Any) -> _ExporterRelease | None:
-    match raw_release:
-        case {"type": "structurizr-cli", "version": str(version), "url": str(url)}:
-            return _StructurizrCliRelease(
-                version=version,
-                url=url,
-            )
-        case {"type": "structurizr-lite", "version": str(version), "url": str(url)}:
-            return _StructurizrLiteRelease(
-                version=version,
-                url=url,
-            )
-        case _:
-            return None
-
-
-def _extract_exporter_releases_from_file(config_file: Path) -> list[_ExporterRelease]:
-    raw_data = json.loads(config_file.read_text())
-    releases: list[_ExporterRelease] = []
-
-    match raw_data:
-        case [*raw_releases]:
-            for raw_release in raw_releases:
-                release = _get_exporter_release(raw_release)
-                if release is not None:
-                    releases.append(release)
-                else:
-                    raise ValueError("Unknown release configuration:\n{}".format(json.dumps(raw_release, indent=4)))
-        case _:
-            raise ValueError("Unknown releases configuration:\n{}".format(json.dumps(raw_data, indent=4)))
-
-    return releases
-
-
-def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release: _StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release: _release_extractor.StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
     structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
 
@@ -369,7 +315,7 @@ def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release:
     return _create_structurizr_cli_exporter
 
 
-def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release: _StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release: _release_extractor.StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     structurizr_lite_dir = temp_dir_path / "structurizr-lite"
     structurizr_lite_dir.mkdir()
 
@@ -393,16 +339,16 @@ def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release
     return _create_structurizr_lite_exporter
 
 
-def _get_exporter_factory(downloader: CachedDownloader, release: _ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
+def _get_exporter_factory(downloader: CachedDownloader, release: _release_extractor.ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> _ExporterFactory:
     match release:
-        case _StructurizrCliRelease() as cli_release:
+        case _release_extractor.StructurizrCliRelease() as cli_release:
             return _get_structurizr_cli_exporter_factory(downloader, cli_release, temp_dir_path, log)
-        case _StructurizrLiteRelease() as lite_release:
+        case _release_extractor.StructurizrLiteRelease() as lite_release:
             return _get_structurizr_lite_exporter_factory(downloader, lite_release, temp_dir_path, log)
 
 
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
-    exporter_releases = _extract_exporter_releases_from_file(args.env_config)
+    exporter_releases = _release_extractor.extract_exporter_releases_from_file(args.env_config)
     downloader = CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
 
     with _logging_tools.log_action(log, "Extract test case configuration"):
