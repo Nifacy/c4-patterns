@@ -1,31 +1,31 @@
 [
     {
         "name": "database-per-service",
-        "workspace": ".bin/examples/databasePerService.dsl",
+        "workspace": "databasePerService.dsl",
         "result": "fail",
         "error_message": "Database 'Payment Service' is already used by 'Order Application'"
     },
     {
         "name": "layered",
-        "workspace": ".bin/examples/layered.dsl",
+        "workspace": "layered.dsl",
         "result": "success",
         "export_result_file": "example-config/structurizr-cli/results/layered.json"
     },
     {
         "name": "reverse-proxy",
-        "workspace": ".bin/examples/reverseProxy.dsl",
+        "workspace": "reverseProxy.dsl",
         "result": "success",
         "export_result_file": "example-config/structurizr-cli/results/reverseProxy.json"
     },
     {
         "name": "saga",
-        "workspace": ".bin/examples/saga.dsl",
+        "workspace": "saga.dsl",
         "result": "success",
         "export_result_file": "example-config/structurizr-cli/results/saga.json"
     },
     {
         "name": "service-registry",
-        "workspace": ".bin/examples/serviceRegistry.dsl",
+        "workspace": "serviceRegistry.dsl",
         "result": "success",
         "export_result_file": "example-config/structurizr-cli/results/serviceRegistry.json"
     }

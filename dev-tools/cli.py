@@ -134,6 +134,13 @@ def _init_integration_tests_parser(parser: argparse.ArgumentParser) -> None:
         help="Path to test case configuration file",
     )
 
+    parser.add_argument(
+        "--samples-dir",
+        type=Path,
+        required=True,
+        help="Path to a directory with Structurizr workspace test samples",
+    )
+
 
 def _init_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Dev Tools CLI")
@@ -197,6 +204,7 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
                 java_path=args.java_path,
                 env_config=args.env_config,
                 test_case_config_file=args.test_case_config,
+                samples_dir=args.samples_dir,
             )
         case _:
             raise ValueError(f"Unknown command: {args.command}")

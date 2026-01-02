@@ -18,11 +18,6 @@ _DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".." / ".cache"
 
 
 @pytest.fixture
-def test_case_config_file(request: pytest.FixtureRequest) -> Path:
-    return request.config.getoption('--test-case-config')
-
-
-@pytest.fixture
 def syntax_plugin_path(request: pytest.FixtureRequest) -> Path:
     return request.config.getoption('--plugin-path')
 
@@ -30,6 +25,11 @@ def syntax_plugin_path(request: pytest.FixtureRequest) -> Path:
 @pytest.fixture
 def java_path(request: pytest.FixtureRequest) -> Path:
     return request.config.getoption('--java-path')
+
+
+@pytest.fixture
+def samples_dir_path(request: pytest.FixtureRequest) -> Path:
+    return request.config.getoption("--samples-dir")
 
 
 @contextlib.contextmanager
@@ -45,9 +45,16 @@ def _create_exporter(exporter_factory: _exporter_factory.ExporterFactory, java_p
         exporter.close()    
 
 
-def test_syntax_plugin(exporter_release: _release_extractor.ExporterRelease, test_case_info: _test_case_info_extractor.TestCaseInfo, syntax_plugin_path: Path, java_path: Path) -> None:
+def test_syntax_plugin(
+    exporter_release: _release_extractor.ExporterRelease,
+    test_case_info: _test_case_info_extractor.TestCaseInfo,
+    syntax_plugin_path: Path,
+    java_path: Path,
+    samples_dir_path: Path,
+) -> None:
     log = logging.getLogger()
     downloader = _cached_downloader.CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
+    workspace_path = samples_dir_path / test_case_info.workspace_path
 
     with tempfile.TemporaryDirectory() as temp_dir:
         exporter_factory = _exporter_factory.get_exporter_factory(downloader, exporter_release, Path(temp_dir), log)
@@ -57,5 +64,5 @@ def test_syntax_plugin(exporter_release: _release_extractor.ExporterRelease, tes
                 _integration_test_runner.run_integration_test_case(
                     run_config=test_case_info.run_config,
                     exporter=exporter,
-                    workspace_path=test_case_info.workspace_path,
+                    workspace_path=workspace_path,
                 )

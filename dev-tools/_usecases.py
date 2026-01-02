@@ -46,6 +46,7 @@ class TestSyntaxPluginArgs:
     java_path: Path
     env_config: Path
     test_case_config_file: Path
+    samples_dir: Path
 
 
 class ValidationIssueError(Exception):
@@ -229,7 +230,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
         f'--env-config={args.env_config.absolute()}',
         f'--plugin-path={args.syntax_plugin_path.absolute()}',
         f'--java-path={args.java_path.absolute()}',
-        # f'--root-dir={_CUR_DIR_PATH.absolute()}',
+        f'--samples-dir={args.samples_dir.absolute()}',
         '--verbose',
         '--log-cli-level=DEBUG',
     ]))
