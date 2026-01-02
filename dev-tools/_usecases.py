@@ -2,27 +2,23 @@ from dataclasses import dataclass
 import itertools
 import logging
 from pathlib import Path
-import tempfile
+import sys
 from typing import Final, Iterator
 
 import github
 import marko
+import pytest
 
-from _cached_downloader import CachedDownloader
-import _exporter_factory
 import _parser.markdown
 
 import _change_log_parser
-import _integration_test_runner
 import _change_log
 import _github
 import _logging_tools
-import _release_extractor
-import _test_case_info_extractor
 
 
 _CUR_DIR_PATH: Final = Path(__file__).parent
-_DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".cache"
+_SYNTAX_PLUGIN_TEST_FILE_PATH: Final = _CUR_DIR_PATH / "tests" / "test_syntax_plugin.py"
 
 
 @dataclass
@@ -227,47 +223,16 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
 
 
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
-    exporter_releases = _release_extractor.extract_exporter_releases_from_file(args.env_config)
-    downloader = CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
-
-    with _logging_tools.log_action(log, "Extract test case configuration"):
-        test_cases_info = _test_case_info_extractor.extract_test_cases_info_from_file(
-            args.test_case_config_file
-        )
-
-    for exporter_release in exporter_releases:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_dir_path = Path(temp_dir)
-
-            with _logging_tools.log_action(log, "Test pattern-syntax-plugin work in specified environment"):
-                log.debug(
-                    "Context:\n"
-                    f"- Exporter: {exporter_release}\n"
-                )
-
-                exporter_factory = _exporter_factory.get_exporter_factory(downloader, exporter_release, temp_dir_path, log)
-
-                with _logging_tools.log_action(log, "Run integration tests"):
-                    for test_case_info in test_cases_info:
-                        log.info(f"Run '{test_case_info.name}' test case ...")
-
-                        exporter = exporter_factory(
-                            java_path=args.java_path,
-                            syntax_plugin_path=args.syntax_plugin_path,
-                        )
-
-                        try:
-                            _integration_test_runner.run_integration_test_case(
-                                run_config=test_case_info.run_config,
-                                exporter=exporter,
-                                workspace_path=test_case_info.workspace_path,
-                            )
-                        finally:
-                            exporter.close()
-
-                        log.info(f"Run '{test_case_info.name}' test case ... ok")
-
-        log.info("All checks passed!")
+    sys.exit(pytest.main([
+        str(_SYNTAX_PLUGIN_TEST_FILE_PATH),
+        f'--test-case-config={args.test_case_config_file.absolute()}',
+        f'--env-config={args.env_config.absolute()}',
+        f'--plugin-path={args.syntax_plugin_path.absolute()}',
+        f'--java-path={args.java_path.absolute()}',
+        # f'--root-dir={_CUR_DIR_PATH.absolute()}',
+        '--verbose',
+        '--log-cli-level=DEBUG',
+    ]))
 
 
 __all__ = [

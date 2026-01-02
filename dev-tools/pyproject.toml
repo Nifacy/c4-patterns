@@ -6,6 +6,10 @@ requires-python = "~=3.13"
 dependencies = [
     "marko==2.1.4",
     "pygithub==2.6.1",
+    "pytest==9.0.2",
     "python-graphql-client==0.4.3",
     "requests==2.32.4",
 ]
+
+[pytest]
+log_cli = true
