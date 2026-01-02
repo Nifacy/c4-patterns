@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import itertools
-import json
 import logging
 from pathlib import Path
 import tempfile
@@ -19,17 +18,11 @@ import _change_log
 import _github
 import _logging_tools
 import _release_extractor
+import _test_case_info_extractor
 
 
 _CUR_DIR_PATH: Final = Path(__file__).parent
 _DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".cache"
-
-
-@dataclass
-class _TestCaseInfo:
-    name: str
-    workspace_path: Path
-    run_config: _integration_test_runner.TestCaseRunConfiguration
 
 
 @dataclass
@@ -233,62 +226,12 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
     log.info(f"Linked issue states are valid")
 
 
-def _extract_test_cases_info_from_file(config_file: Path) -> list[_TestCaseInfo]:
-    raw_infos = json.loads(config_file.read_text())
-    test_cases_info: list[_TestCaseInfo] = []
-
-    for raw_info in raw_infos:
-        match raw_info:
-            case {
-                "result": "success",
-                "name": str(name),
-                "workspace": str(workspace_path),
-                "export_result_file": str(result_file_path),
-            }:
-                test_cases_info.append(
-                    _TestCaseInfo(
-                        name=name,
-                        workspace_path=Path(workspace_path),
-                        run_config=_integration_test_runner.SuccessTestCase(
-                            name=name,
-                            expected_export_result_file=Path(result_file_path),
-                        ),
-                    )
-                )
-
-            case {
-                "result": "fail",
-                "name": str(name),
-                "workspace": str(workspace_path),
-                "error_message": str(error_message),
-            }:
-                test_cases_info.append(
-                    _TestCaseInfo(
-                        name=name,
-                        workspace_path=Path(workspace_path),
-                        run_config=_integration_test_runner.FailTestCase(
-                            name=name,
-                            error_message=error_message,
-                        ),
-                    )
-                )
-
-            case _:
-                raise ValueError(
-                    "Unknown tets case configuration:\n{}".format(
-                        json.dumps(raw_info, indent=4)
-                    )
-                )
-
-    return test_cases_info
-
-
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
     exporter_releases = _release_extractor.extract_exporter_releases_from_file(args.env_config)
     downloader = CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
 
     with _logging_tools.log_action(log, "Extract test case configuration"):
-        test_cases_info = _extract_test_cases_info_from_file(
+        test_cases_info = _test_case_info_extractor.extract_test_cases_info_from_file(
             args.test_case_config_file
         )
 
