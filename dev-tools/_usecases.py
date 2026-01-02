@@ -1,4 +1,3 @@
-import contextlib
 from dataclasses import dataclass
 import itertools
 import json
@@ -19,6 +18,7 @@ import _change_log_parser
 import _integration_test_runner
 import _change_log
 import _github
+import _logging_tools
 
 
 _CUR_DIR_PATH: Final = Path(__file__).parent
@@ -117,19 +117,6 @@ def _parse_change_log(file: Path, log: logging.Logger) -> _change_log.ChangeLog:
     return change_log
 
 
-@contextlib.contextmanager
-def _log_action(log: logging.Logger, action: str) -> Iterator[None]:
-    log.debug(f"{action}: started")
-
-    try:
-        yield
-    except Exception as e:
-        log.debug(f"{action}: failed: {e}")
-        raise
-    else:
-        log.debug(f"{action}: completed")
-
-
 def _extract_issue_links(change_log: _change_log.ChangeLog) -> Iterator[str]:
     for version_changes in change_log.version_changes:
         all_version_changes = itertools.chain(
@@ -149,7 +136,7 @@ def validate_structure(args: ValidateStructureArgs, log: logging.Logger) -> None
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    with _log_action(log, "Validating CHANGELOG structure"):
+    with _logging_tools.log_action(log, "Validating CHANGELOG structure"):
         _parse_change_log(args.file, log)
 
     log.info("Validation passed successfully!")
@@ -159,11 +146,11 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    with _log_action(log, "Validating Issues states"):
-        with _log_action(log, "Parse CHANGELOG file"):
+    with _logging_tools.log_action(log, "Validating Issues states"):
+        with _logging_tools.log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
-        with _log_action(log, "Get issue infos"):
+        with _logging_tools.log_action(log, "Get issue infos"):
             github_client = _init_github_client(args.github_token)
             issue_links = _extract_issue_links(change_log)
             issue_infos = [
@@ -171,14 +158,14 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
                 for issue_link in issue_links
             ]
 
-        with _log_action(log, "Get linkes issue infos"):
+        with _logging_tools.log_action(log, "Get linkes issue infos"):
             pr_info = _github.get_pull_request_info(
                 github_token=args.github_token,
                 pr_location=args.pr_location,
             )
             linked_issue_ids = {issue.number for issue in pr_info.pinned_issues}
 
-        with _log_action(log, "Check issues state"):
+        with _logging_tools.log_action(log, "Check issues state"):
             problem_issues: list[_github.IssueInfo] = []
 
             for issue_info in issue_infos:
@@ -230,18 +217,18 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    with _log_action(log, "Validating Issue added"):
-        with _log_action(log, "Parse CHANGELOG file"):
+    with _logging_tools.log_action(log, "Validating Issue added"):
+        with _logging_tools.log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
-        with _log_action(log, "Get linked issue infos"):
+        with _logging_tools.log_action(log, "Get linked issue infos"):
             pr_info = _github.get_pull_request_info(
                 github_token=args.github_token,
                 pr_location=args.pr_location,
             )
             linked_issue_ids = {issue.number for issue in pr_info.pinned_issues}
 
-        with _log_action(log, "Get issues in last version changes"):
+        with _logging_tools.log_action(log, "Get issues in last version changes"):
             issue_infos = _get_last_version_change_issues(
                 change_log, args.github_token, log
             )
@@ -250,7 +237,7 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
             for issue_info in issue_infos:
                 log.debug(f"\t- {issue_info}")
 
-        with _log_action(log, "Check issue states"):
+        with _logging_tools.log_action(log, "Check issue states"):
             problem_issues: list[_github.IssueInfo] = []
 
             for linked_issue_id in linked_issue_ids:
@@ -362,13 +349,13 @@ def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release:
     structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
     structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
 
-    with _log_action(log, "Install structurizr cli"):
+    with _logging_tools.log_action(log, "Install structurizr cli"):
         downloader.install_file(
             url=release.url,
             output_path=structurizr_archive_path,
         )
 
-    with _log_action(log, "Extract structurizr cli"):
+    with _logging_tools.log_action(log, "Extract structurizr cli"):
         with zipfile.ZipFile(structurizr_archive_path) as archive:
             archive.extractall(structurizr_cli_dir)
 
@@ -388,7 +375,7 @@ def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release
 
     structurizr_lite_war_file = structurizr_lite_dir / "structurizr-lite.war"
 
-    with _log_action(log, "Install structurizr lite"):
+    with _logging_tools.log_action(log, "Install structurizr lite"):
         downloader.install_file(
             url=release.url,
             output_path=structurizr_lite_war_file,
@@ -418,7 +405,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
     exporter_releases = _extract_exporter_releases_from_file(args.env_config)
     downloader = CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
 
-    with _log_action(log, "Extract test case configuration"):
+    with _logging_tools.log_action(log, "Extract test case configuration"):
         test_cases_info = _extract_test_cases_info_from_file(
             args.test_case_config_file
         )
@@ -427,7 +414,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir_path = Path(temp_dir)
 
-            with _log_action(log, "Test pattern-syntax-plugin work in specified environment"):
+            with _logging_tools.log_action(log, "Test pattern-syntax-plugin work in specified environment"):
                 log.debug(
                     "Context:\n"
                     f"- Exporter: {exporter_release}\n"
@@ -435,7 +422,7 @@ def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
 
                 exporter_factory = _get_exporter_factory(downloader, exporter_release, temp_dir_path, log)
 
-                with _log_action(log, "Run integration tests"):
+                with _logging_tools.log_action(log, "Run integration tests"):
                     for test_case_info in test_cases_info:
                         log.info(f"Run '{test_case_info.name}' test case ...")
 

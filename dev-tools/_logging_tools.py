@@ -1,5 +1,6 @@
+import contextlib
 import logging
-from typing import Mapping, Any, MutableMapping
+from typing import Iterator, Mapping, Any, MutableMapping
 
 
 class _PrefixLoggerAdapter(logging.LoggerAdapter):
@@ -23,3 +24,16 @@ def with_prefix(logger: logging.Logger, prefix: str) -> logging.Logger:
         logger=logger,
         prefix=prefix,
     )
+
+
+@contextlib.contextmanager
+def log_action(log: logging.Logger, action: str) -> Iterator[None]:
+    log.debug(f"{action}: started")
+
+    try:
+        yield
+    except Exception as e:
+        log.debug(f"{action}: failed: {e}")
+        raise
+    else:
+        log.debug(f"{action}: completed")
