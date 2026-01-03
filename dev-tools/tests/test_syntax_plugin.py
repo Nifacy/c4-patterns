@@ -1,5 +1,6 @@
 import contextlib
 import dataclasses
+import json
 import logging
 from pathlib import Path
 import tempfile
@@ -7,7 +8,6 @@ from typing import Final, Iterator
 import pytest
 import _exporter_factory
 import _exporters
-import _integration_test_runner
 import _logging_tools
 import _release_extractor
 import _cached_downloader
@@ -80,20 +80,6 @@ _RELEASES: Final = (
         url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
     ),
 )
-
-
-def _get_run_config(datadir: Path, test_config: TestConfiguration) -> _integration_test_runner.TestCaseRunConfiguration:
-    match test_config.result:
-        case SuccessTestResult(expected_result_path=expected_result_path):
-            return _integration_test_runner.SuccessTestCase(
-                name=test_config.name,
-                expected_export_result_file=(datadir / expected_result_path),
-            )
-        case FailedTestResult(error_message=error_message):
-            return _integration_test_runner.FailTestCase(
-                name=test_config.name,
-                error_message=error_message,
-            )
 
 
 @pytest.mark.parametrize(
@@ -244,8 +230,25 @@ def test_syntax_plugin(
 
         with _logging_tools.log_action(log, "Run integration test"):
             with _create_exporter(exporter_factory, java_path, syntax_plugin_path) as exporter:
-                _integration_test_runner.run_integration_test_case(
-                    run_config=_get_run_config(datadir, test_config),
-                    exporter=exporter,
-                    workspace_path=workspace_path,
-                )
+                export_result = exporter.export_to_json(workspace_path)
+
+                match test_config.result:
+                    case SuccessTestResult(expected_result_path=expected_result_path):
+                        expected_result = json.loads((datadir / expected_result_path).read_text())
+
+                        assert not isinstance(
+                            export_result, _exporters.ExportFailure
+                        ), "Export result unexpected failed"
+
+                        assert (
+                            export_result == expected_result
+                        ), "Exported workspace not equals to expected"
+
+                    case FailedTestResult(error_message=error_message):
+                        assert isinstance(
+                            export_result, _exporters.ExportFailure
+                        ), "Export result unexpected success"
+
+                        assert (
+                            error_message in export_result.error_message
+                        ), "Stderr doesn't contain error message"
