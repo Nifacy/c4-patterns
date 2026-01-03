@@ -9,24 +9,24 @@
         "name": "layered",
         "workspace": "layered.dsl",
         "result": "success",
-        "export_result_file": "example-config/structurizr-cli/results/layered.json"
+        "export_result_file": "results/layered.json"
     },
     {
         "name": "reverse-proxy",
         "workspace": "reverseProxy.dsl",
         "result": "success",
-        "export_result_file": "example-config/structurizr-cli/results/reverseProxy.json"
+        "export_result_file": "results/reverseProxy.json"
     },
     {
         "name": "saga",
         "workspace": "saga.dsl",
         "result": "success",
-        "export_result_file": "example-config/structurizr-cli/results/saga.json"
+        "export_result_file": "results/saga.json"
     },
     {
         "name": "service-registry",
         "workspace": "serviceRegistry.dsl",
         "result": "success",
-        "export_result_file": "example-config/structurizr-cli/results/serviceRegistry.json"
+        "export_result_file": "results/serviceRegistry.json"
     }
 ]

@@ -29,7 +29,7 @@ def extract_test_cases_info_from_file(config_file: Path) -> list[TestCaseInfo]:
                         workspace_path=Path(workspace_path),
                         run_config=_integration_test_runner.SuccessTestCase(
                             name=name,
-                            expected_export_result_file=Path(result_file_path),
+                            expected_export_result_file=(config_file.parent / result_file_path),
                         ),
                     )
                 )
