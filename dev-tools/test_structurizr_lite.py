@@ -11,7 +11,7 @@ import _release_extractor
 
 CUR_DIR_PATH: Final = Path(__file__).parent
 SYNTAX_PLUGIN_PATH: Final = CUR_DIR_PATH / "temp" / "pattern-syntax-plugin-1.0.jar"
-JAVA_BINARY_DIR_PATH = Path(os.environ["JAVA_PATH"]) / "bin"
+JAVA_BINARY_DIR_PATH = Path(os.environ["JAVA_HOME"]) / "bin"
 WORKSPACE_PATH: Final = CUR_DIR_PATH / "temp" / "samples" / "layered.dsl"
 
 log = logging.getLogger()
