@@ -1,4 +1,5 @@
 import contextlib
+import dataclasses
 import logging
 from pathlib import Path
 import tempfile
@@ -9,12 +10,32 @@ import _exporters
 import _integration_test_runner
 import _logging_tools
 import _release_extractor
-import _test_case_info_extractor
 import _cached_downloader
 
 
 _CUR_DIR_PATH: Final = Path(__file__).parent
 _DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".." / ".cache"
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class SuccessTestResult:
+    expected_result_path: Path
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class FailedTestResult:
+    error_message: str
+
+
+@dataclasses.dataclass(frozen=True, slots=True)
+class TestConfiguration:
+    name: str
+    release: _release_extractor.ExporterRelease
+    result: SuccessTestResult | FailedTestResult
+    workspace_path: Path
+
+    @property
+    def param_id(self) -> str:
+        return f"release={self.release}, test_case='{self.name}'"
 
 
 @pytest.fixture
@@ -45,24 +66,186 @@ def _create_exporter(exporter_factory: _exporter_factory.ExporterFactory, java_p
         exporter.close()    
 
 
+_RELEASES: Final = (
+    _release_extractor.StructurizrCliRelease(
+        version="v2025.03.28",
+        url="https://github.com/structurizr/cli/releases/download/v2025.03.28/structurizr-cli.zip",
+    ),
+    _release_extractor.StructurizrCliRelease(
+        version="v2025.05.28",
+        url="https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip",
+    ),
+    _release_extractor.StructurizrLiteRelease(
+        version="v2025.03.28",
+        url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
+    ),
+)
+
+
+def _get_run_config(datadir: Path, test_config: TestConfiguration) -> _integration_test_runner.TestCaseRunConfiguration:
+    match test_config.result:
+        case SuccessTestResult(expected_result_path=expected_result_path):
+            return _integration_test_runner.SuccessTestCase(
+                name=test_config.name,
+                expected_export_result_file=(datadir / expected_result_path),
+            )
+        case FailedTestResult(error_message=error_message):
+            return _integration_test_runner.FailTestCase(
+                name=test_config.name,
+                error_message=error_message,
+            )
+
+
+@pytest.mark.parametrize(
+    "test_config",
+    [
+        TestConfiguration(
+            name="database-per-service",
+            workspace_path=Path("databasePerService.dsl"),
+            result=FailedTestResult(
+                error_message="Database 'Payment Service' is already used by 'Order Application'",
+            ),
+            release=_RELEASES[0],
+        ),
+        TestConfiguration(
+            name="layered",
+            workspace_path=Path("layered.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/layered.json"),
+            ),
+            release=_RELEASES[0],
+        ),
+        TestConfiguration(
+            name="reverse-proxy",
+            workspace_path=Path("reverseProxy.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/reverseProxy.json"),
+            ),
+            release=_RELEASES[0],
+        ),
+        TestConfiguration(
+            name="saga",
+            workspace_path=Path("saga.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/saga.json"),
+            ),
+            release=_RELEASES[0],
+        ),
+        TestConfiguration(
+            name="service-registry",
+            workspace_path=Path("serviceRegistry.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/serviceRegistry.json"),
+            ),
+            release=_RELEASES[0],
+        ),
+
+        # ----------------------------------------------------------------------------------------------- #
+
+        TestConfiguration(
+            name="database-per-service",
+            workspace_path=Path("databasePerService.dsl"),
+            result=FailedTestResult(
+                error_message="Database 'Payment Service' is already used by 'Order Application'",
+            ),
+            release=_RELEASES[1],
+        ),
+        TestConfiguration(
+            name="layered",
+            workspace_path=Path("layered.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/layered.json"),
+            ),
+            release=_RELEASES[1],
+        ),
+        TestConfiguration(
+            name="reverse-proxy",
+            workspace_path=Path("reverseProxy.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/reverseProxy.json"),
+            ),
+            release=_RELEASES[1],
+        ),
+        TestConfiguration(
+            name="saga",
+            workspace_path=Path("saga.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/saga.json"),
+            ),
+            release=_RELEASES[1],
+        ),
+        TestConfiguration(
+            name="service-registry",
+            workspace_path=Path("serviceRegistry.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-cli/serviceRegistry.json"),
+            ),
+            release=_RELEASES[1],
+        ),
+
+        # ----------------------------------------------------------------------------------------------- #
+
+        TestConfiguration(
+            name="database-per-service",
+            workspace_path=Path("databasePerService.dsl"),
+            result=FailedTestResult(
+                error_message="Database 'Payment Service' is already used by 'Order Application'",
+            ),
+            release=_RELEASES[2],
+        ),
+        TestConfiguration(
+            name="layered",
+            workspace_path=Path("layered.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-lite/layered.json"),
+            ),
+            release=_RELEASES[2],
+        ),
+        TestConfiguration(
+            name="reverse-proxy",
+            workspace_path=Path("reverseProxy.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-lite/reverseProxy.json"),
+            ),
+            release=_RELEASES[2],
+        ),
+        TestConfiguration(
+            name="saga",
+            workspace_path=Path("saga.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-lite/saga.json"),
+            ),
+            release=_RELEASES[2],
+        ),
+        TestConfiguration(
+            name="service-registry",
+            workspace_path=Path("serviceRegistry.dsl"),
+            result=SuccessTestResult(
+                expected_result_path=Path("results/structurizr-lite/serviceRegistry.json"),
+            ),
+            release=_RELEASES[2],
+        )
+    ],
+    ids=lambda test_config: test_config.param_id,
+)
 def test_syntax_plugin(
-    exporter_release: _release_extractor.ExporterRelease,
-    test_case_info: _test_case_info_extractor.TestCaseInfo,
+    test_config: TestConfiguration,
     syntax_plugin_path: Path,
     java_path: Path,
     samples_dir_path: Path,
+    datadir: Path,
 ) -> None:
     log = logging.getLogger()
     downloader = _cached_downloader.CachedDownloader(log, _DOWNLOAD_CACHE_PATH)
-    workspace_path = samples_dir_path / test_case_info.workspace_path
+    workspace_path = samples_dir_path / test_config.workspace_path
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        exporter_factory = _exporter_factory.get_exporter_factory(downloader, exporter_release, Path(temp_dir), log)
+        exporter_factory = _exporter_factory.get_exporter_factory(downloader, test_config.release, Path(temp_dir), log)
 
         with _logging_tools.log_action(log, "Run integration test"):
             with _create_exporter(exporter_factory, java_path, syntax_plugin_path) as exporter:
                 _integration_test_runner.run_integration_test_case(
-                    run_config=test_case_info.run_config,
+                    run_config=_get_run_config(datadir, test_config),
                     exporter=exporter,
                     workspace_path=workspace_path,
                 )
