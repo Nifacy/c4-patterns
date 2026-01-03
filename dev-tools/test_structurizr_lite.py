@@ -2,6 +2,7 @@ import logging
 import os
 from pathlib import Path
 import tempfile
+import time
 from typing import Final
 
 import _exporter_factory
@@ -39,8 +40,9 @@ with tempfile.TemporaryDirectory() as temp_dir:
     )
 
     try:
-        result = exporter.export_to_json(WORKSPACE_PATH)
-        print(f"Export result: {result}")
+        time.sleep(15.0)
+        # result = exporter.export_to_json(WORKSPACE_PATH)
+        # print(f"Export result: {result}")
     finally:
         exporter.close()
 

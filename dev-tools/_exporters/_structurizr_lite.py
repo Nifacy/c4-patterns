@@ -143,8 +143,8 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         print(f"Command: {command}")
         process = subprocess.Popen(
             command,
-            stdout=stdout,
-            stderr=stderr,
+            # stdout=stdout,
+            # stderr=stderr,
             env=env,
         )
 
