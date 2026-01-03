@@ -60,6 +60,9 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         self.__java_path = java_path
         self.__syntax_plugin_path = syntax_plugin_path
 
+        print(f"Stdout path: {stdout_path.absolute()}")
+        print(f"Stderr path: {stderr_path.absolute()}")
+
         self.__structurizr_lite_jar = self.__get_structurizr_lite_jar_path(self.__structurizr_lite_dir)
         self.__context_dir = self.__get_context_directory(self.__structurizr_lite_dir)
         self.__workspace_dir = self.__get_workspace_directory(self.__context_dir)

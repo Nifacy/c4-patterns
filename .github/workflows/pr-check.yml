@@ -6,316 +6,358 @@ on:
     - dev
 
 jobs:
-  validate-changelog:
-    name: Validate changelog
-    runs-on: ubuntu-latest
+  # validate-changelog:
+  #   name: Validate changelog
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v6
-      with:
-        version: "0.7.13"
+  #   - name: Install uv
+  #     uses: astral-sh/setup-uv@v6
+  #     with:
+  #       version: "0.7.13"
 
-    - name: Prepare 'dev-tools' environment
-      run: uv sync
-      working-directory: dev-tools
+  #   - name: Prepare 'dev-tools' environment
+  #     run: uv sync
+  #     working-directory: dev-tools
 
-    - name: Validate changelog structure
-      run: uv run cli.py changelog validate-structure ${{ github.workspace }}/CHANGES.md
-      working-directory: dev-tools
+  #   - name: Validate changelog structure
+  #     run: uv run cli.py changelog validate-structure ${{ github.workspace }}/CHANGES.md
+  #     working-directory: dev-tools
 
-    - name: Validate all issues closed
-      run: |
-        uv run cli.py changelog validate-issues \
-          --file ${{ github.workspace }}/CHANGES.md \
-          --repo ${{ github.repository }} \
-          --pr-number ${{ github.event.pull_request.number }}
-      working-directory: dev-tools
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #   - name: Validate all issues closed
+  #     run: |
+  #       uv run cli.py changelog validate-issues \
+  #         --file ${{ github.workspace }}/CHANGES.md \
+  #         --repo ${{ github.repository }} \
+  #         --pr-number ${{ github.event.pull_request.number }}
+  #     working-directory: dev-tools
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Validate all linked issues
-      run: |
-        uv run cli.py changelog validate-issue-added \
-          --file ${{ github.workspace }}/CHANGES.md \
-          --repo ${{ github.repository }} \
-          --pr-number ${{ github.event.pull_request.number }}
-      working-directory: dev-tools
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #   - name: Validate all linked issues
+  #     run: |
+  #       uv run cli.py changelog validate-issue-added \
+  #         --file ${{ github.workspace }}/CHANGES.md \
+  #         --repo ${{ github.repository }} \
+  #         --pr-number ${{ github.event.pull_request.number }}
+  #     working-directory: dev-tools
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  check-formatting:
-    name: Check source code formatting
-    runs-on: ubuntu-latest
+  # check-formatting:
+  #   name: Check source code formatting
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.13'
-        build-scan-publish: true
-        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
-        build-scan-terms-of-use-agree: 'yes'
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4
+  #     with:
+  #       gradle-version: '8.13'
+  #       build-scan-publish: true
+  #       build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+  #       build-scan-terms-of-use-agree: 'yes'
 
-    - name: "Check formatting in 'examples' project"
-      run: gradle formatCheck
-      working-directory: examples
+  #   - name: "Check formatting in 'examples' project"
+  #     run: gradle formatCheck
+  #     working-directory: examples
 
-    - name: "Check formatting in 'pattern-lens' project"
-      run: gradle formatCheck
-      working-directory: pattern-lens
+  #   - name: "Check formatting in 'pattern-lens' project"
+  #     run: gradle formatCheck
+  #     working-directory: pattern-lens
 
-    - name: "Check formatting in 'pattern-lib' project"
-      run: gradle formatCheck
-      working-directory: pattern-lib
+  #   - name: "Check formatting in 'pattern-lib' project"
+  #     run: gradle formatCheck
+  #     working-directory: pattern-lib
 
-    - name: "Check formatting in 'pattern-syntax-parser' project"
-      run: gradle formatCheck
-      working-directory: pattern-syntax-parser
+  #   - name: "Check formatting in 'pattern-syntax-parser' project"
+  #     run: gradle formatCheck
+  #     working-directory: pattern-syntax-parser
 
-    - name: "Check formatting in 'pattern-syntax-plugin' project"
-      run: gradle formatCheck
-      working-directory: pattern-syntax-plugin
+  #   - name: "Check formatting in 'pattern-syntax-plugin' project"
+  #     run: gradle formatCheck
+  #     working-directory: pattern-syntax-plugin
 
-  build-pattern-lib:
-    name: Build 'pattern-lib' project
-    runs-on: ubuntu-latest
-    needs: check-formatting
+  # build-pattern-lib:
+  #   name: Build 'pattern-lib' project
+  #   runs-on: ubuntu-latest
+  #   needs: check-formatting
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          common
-          pattern-lib
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #     with:
+  #       sparse-checkout: |
+  #         common
+  #         pattern-lib
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.13'
-        build-scan-publish: true
-        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
-        build-scan-terms-of-use-agree: 'yes'
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4
+  #     with:
+  #       gradle-version: '8.13'
+  #       build-scan-publish: true
+  #       build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+  #       build-scan-terms-of-use-agree: 'yes'
 
-    - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
-      working-directory: pattern-lib
+  #   - name: Run build
+  #     run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
+  #     working-directory: pattern-lib
 
-    - name: Publish jar file
-      uses: actions/upload-artifact@v4
-      with:
-        name: pattern-lib
-        path: pattern-lib/build/libs/*.jar
-        if-no-files-found: error
+  #   - name: Publish jar file
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: pattern-lib
+  #       path: pattern-lib/build/libs/*.jar
+  #       if-no-files-found: error
 
-    - name: Publish maven package
-      uses: actions/upload-artifact@v4
-      with:
-        name: pattern-lib-package
-        path: ${{ github.workspace }}/repo
-        if-no-files-found: error
+  #   - name: Publish maven package
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: pattern-lib-package
+  #       path: ${{ github.workspace }}/repo
+  #       if-no-files-found: error
 
-  build-examples:
-    name: Build 'examples' project
-    runs-on: ubuntu-latest
-    needs: [ check-formatting, build-pattern-lib ]
+  # build-examples:
+  #   name: Build 'examples' project
+  #   runs-on: ubuntu-latest
+  #   needs: [ check-formatting, build-pattern-lib ]
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          common
-          examples
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #     with:
+  #       sparse-checkout: |
+  #         common
+  #         examples
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.13'
-        build-scan-publish: true
-        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
-        build-scan-terms-of-use-agree: 'yes'
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4
+  #     with:
+  #       gradle-version: '8.13'
+  #       build-scan-publish: true
+  #       build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+  #       build-scan-terms-of-use-agree: 'yes'
 
-    - name: Download 'pattern-lib' package
-      uses: actions/download-artifact@v4
-      with:
-        name: pattern-lib-package
-        path: ${{ github.workspace }}/pattern-lib-package
+  #   - name: Download 'pattern-lib' package
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: pattern-lib-package
+  #       path: ${{ github.workspace }}/pattern-lib-package
 
-    - name: Install 'pattern-lib' package in local maven repository
-      run: rsync -av ${{ github.workspace }}/pattern-lib-package/ ${{ github.workspace }}/repo/
+  #   - name: Install 'pattern-lib' package in local maven repository
+  #     run: rsync -av ${{ github.workspace }}/pattern-lib-package/ ${{ github.workspace }}/repo/
 
-    - name: Display local maven repository
-      run: ls -R ${{ github.workspace }}/repo
+  #   - name: Display local maven repository
+  #     run: ls -R ${{ github.workspace }}/repo
 
-    - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-lib.version=debug build
-      working-directory: examples
+  #   - name: Run build
+  #     run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-lib.version=debug build
+  #     working-directory: examples
 
-    - name: Publish jar file
-      uses: actions/upload-artifact@v4
-      with:
-        name: examples
-        path: examples/build/workspaces/*
-        if-no-files-found: error
+  #   - name: Publish jar file
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: examples
+  #       path: examples/build/workspaces/*
+  #       if-no-files-found: error
 
-  build-pattern-lens:
-    name: Build 'pattern-lens' project
-    runs-on: ubuntu-latest
-    needs: check-formatting
+  # build-pattern-lens:
+  #   name: Build 'pattern-lens' project
+  #   runs-on: ubuntu-latest
+  #   needs: check-formatting
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          common
-          pattern-lens
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #     with:
+  #       sparse-checkout: |
+  #         common
+  #         pattern-lens
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.13'
-        build-scan-publish: true
-        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
-        build-scan-terms-of-use-agree: 'yes'
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4
+  #     with:
+  #       gradle-version: '8.13'
+  #       build-scan-publish: true
+  #       build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+  #       build-scan-terms-of-use-agree: 'yes'
 
-    - name: Run build
-      run: gradle build
-      working-directory: pattern-lens
+  #   - name: Run build
+  #     run: gradle build
+  #     working-directory: pattern-lens
 
-    - name: Publish jar file
-      uses: actions/upload-artifact@v4
-      with:
-        name: pattern-lens
-        path: pattern-lens/build/libs/*
+  #   - name: Publish jar file
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: pattern-lens
+  #       path: pattern-lens/build/libs/*
 
-  build-pattern-syntax-parser:
-    name: Build 'pattern-syntax-parser' project
-    runs-on: ubuntu-latest
-    needs: check-formatting
+  # build-pattern-syntax-parser:
+  #   name: Build 'pattern-syntax-parser' project
+  #   runs-on: ubuntu-latest
+  #   needs: check-formatting
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          common
-          pattern-syntax-parser
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #     with:
+  #       sparse-checkout: |
+  #         common
+  #         pattern-syntax-parser
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.13'
-        build-scan-publish: true
-        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
-        build-scan-terms-of-use-agree: 'yes'
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4
+  #     with:
+  #       gradle-version: '8.13'
+  #       build-scan-publish: true
+  #       build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+  #       build-scan-terms-of-use-agree: 'yes'
 
-    - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
-      working-directory: pattern-syntax-parser
+  #   - name: Run build
+  #     run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo publishDebugPublicationToMavenLocal build
+  #     working-directory: pattern-syntax-parser
 
-    - name: Publish jar file
-      uses: actions/upload-artifact@v4
-      with:
-        name: pattern-syntax-parser
-        path: pattern-syntax-parser/build/libs/*.jar
-        if-no-files-found: error
+  #   - name: Publish jar file
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: pattern-syntax-parser
+  #       path: pattern-syntax-parser/build/libs/*.jar
+  #       if-no-files-found: error
 
-    - name: Publish maven package
-      uses: actions/upload-artifact@v4
-      with:
-        name: pattern-syntax-parser-package
-        path: ${{ github.workspace }}/repo
-        if-no-files-found: error
+  #   - name: Publish maven package
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: pattern-syntax-parser-package
+  #       path: ${{ github.workspace }}/repo
+  #       if-no-files-found: error
 
-  build-pattern-syntax-plugin:
-    name: Build 'pattern-syntax-plugin' project
-    runs-on: ubuntu-latest
-    needs: [ check-formatting, build-pattern-syntax-parser ]
+  # build-pattern-syntax-plugin:
+  #   name: Build 'pattern-syntax-plugin' project
+  #   runs-on: ubuntu-latest
+  #   needs: [ check-formatting, build-pattern-syntax-parser ]
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          common
-          pattern-syntax-plugin
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #     with:
+  #       sparse-checkout: |
+  #         common
+  #         pattern-syntax-plugin
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-      with:
-        gradle-version: '8.13'
-        build-scan-publish: true
-        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
-        build-scan-terms-of-use-agree: 'yes'
+  #   - name: Setup Gradle
+  #     uses: gradle/actions/setup-gradle@v4
+  #     with:
+  #       gradle-version: '8.13'
+  #       build-scan-publish: true
+  #       build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+  #       build-scan-terms-of-use-agree: 'yes'
 
-    - name: Download 'pattern-syntax-parser' package
-      uses: actions/download-artifact@v4
-      with:
-        name: pattern-syntax-parser-package
-        path: ${{ github.workspace }}/pattern-syntax-parser
+  #   - name: Download 'pattern-syntax-parser' package
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: pattern-syntax-parser-package
+  #       path: ${{ github.workspace }}/pattern-syntax-parser
 
-    - name: Install 'pattern-syntax-parser' package in local maven repository
-      run: rsync -av ${{ github.workspace }}/pattern-syntax-parser/ ${{ github.workspace }}/repo/
+  #   - name: Install 'pattern-syntax-parser' package in local maven repository
+  #     run: rsync -av ${{ github.workspace }}/pattern-syntax-parser/ ${{ github.workspace }}/repo/
 
-    - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-syntax-parser.version=debug build
-      working-directory: pattern-syntax-plugin
+  #   - name: Run build
+  #     run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-syntax-parser.version=debug build
+  #     working-directory: pattern-syntax-plugin
 
-    - name: Publish jar file
-      uses: actions/upload-artifact@v4
-      with:
-        name: pattern-syntax-plugin
-        path: pattern-syntax-plugin/build/libs/*
-        if-no-files-found: error
+  #   - name: Publish jar file
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: pattern-syntax-plugin
+  #       path: pattern-syntax-plugin/build/libs/*
+  #       if-no-files-found: error
 
-  build-vs-code-extension:
-    name: Build 'vs-code-extension' project
-    runs-on: ubuntu-latest
-    needs: check-formatting
+  # build-vs-code-extension:
+  #   name: Build 'vs-code-extension' project
+  #   runs-on: ubuntu-latest
+  #   needs: check-formatting
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        sparse-checkout: vs-code-extension
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #     with:
+  #       sparse-checkout: vs-code-extension
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.17.0'
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v4
+  #     with:
+  #       node-version: '20.17.0'
 
-    - name: Install dependencies
-      run: npm install
-      working-directory: vs-code-extension
+  #   - name: Install dependencies
+  #     run: npm install
+  #     working-directory: vs-code-extension
 
-    - name: Install VS Code CLI
-      run: npm install -g @vscode/vsce
-      working-directory: vs-code-extension
+  #   - name: Install VS Code CLI
+  #     run: npm install -g @vscode/vsce
+  #     working-directory: vs-code-extension
 
-    - name: Build VSIX package
-      run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/vs-code-extension.vsix
-      working-directory: vs-code-extension
+  #   - name: Build VSIX package
+  #     run: vsce package --allow-star-activation --allow-missing-repository --out ${{ github.workspace }}/vs-code-extension.vsix
+  #     working-directory: vs-code-extension
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: vs-code-extension
-        path: ${{ github.workspace }}/vs-code-extension.vsix
+  #   - name: Upload artifacts
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: vs-code-extension
+  #       path: ${{ github.workspace }}/vs-code-extension.vsix
+
+  # run-integration-tests:
+  #   name: Run integration tests
+  #   runs-on: ubuntu-latest
+  #   needs: [ build-examples, build-pattern-syntax-plugin ]
+
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+
+  #   - name: Install uv
+  #     uses: astral-sh/setup-uv@v6
+  #     with:
+  #       version: "0.7.13"
+
+  #   - name: Prepare 'dev-tools' environment
+  #     run: uv sync
+  #     working-directory: dev-tools
+
+  #   - name: Prepare samples directory
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: examples
+  #       path: ${{ github.workspace }}/.samples
+
+  #   - name: Download syntax plugin
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       name: pattern-syntax-plugin
+  #       path: ${{ github.workspace }}/.pattern-syntax-plugin
+
+  #   - name: Setup java
+  #     uses: actions/setup-java@v5
+  #     with:
+  #       distribution: 'temurin'
+  #       java-version: '17'
+
+  #   - name: Run integration tests
+  #     run: |
+  #       uv run cli.py integration-tests \
+  #         --plugin-path ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-debug.jar \
+  #         --java-path $JAVA_HOME/bin \
+  #         --samples-dir ${{ github.workspace }}/.samples
+  #     working-directory: dev-tools
 
   run-integration-tests:
     name: Run integration tests
     runs-on: ubuntu-latest
-    needs: [ build-examples, build-pattern-syntax-plugin ]
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -328,18 +370,6 @@ jobs:
     - name: Prepare 'dev-tools' environment
       run: uv sync
       working-directory: dev-tools
-
-    - name: Prepare samples directory
-      uses: actions/download-artifact@v4
-      with:
-        name: examples
-        path: ${{ github.workspace }}/.samples
-
-    - name: Download syntax plugin
-      uses: actions/download-artifact@v4
-      with:
-        name: pattern-syntax-plugin
-        path: ${{ github.workspace }}/.pattern-syntax-plugin
 
     - name: Setup java
       uses: actions/setup-java@v5
@@ -349,8 +379,5 @@ jobs:
 
     - name: Run integration tests
       run: |
-        uv run cli.py integration-tests \
-          --plugin-path ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-debug.jar \
-          --java-path $JAVA_HOME/bin \
-          --samples-dir ${{ github.workspace }}/.samples
+        uv run test_structurizr_lite.py
       working-directory: dev-tools
