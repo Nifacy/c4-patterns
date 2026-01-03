@@ -347,14 +347,10 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Get java binary directory path
-      id: get-java-bin-dir-path
-      run: echo "java_bin_dir_path=$(dirname $(which java))" >> "$GITHUB_OUTPUT"
-
     - name: Run integration tests
       run: |
         uv run cli.py integration-tests \
           --plugin-path ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-debug.jar \
-          --java-path ${{ steps.get-javabin-dir-path.outputs.java_bin_dir_path }} \
+          --java-path $JAVA_HOME/bin \
           --samples-dir ${{ github.workspace }}/.samples
       working-directory: dev-tools
