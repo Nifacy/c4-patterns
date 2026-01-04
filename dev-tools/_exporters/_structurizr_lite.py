@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import io
 import json
+import logging
 import re
 import shutil
 import subprocess
@@ -19,6 +20,7 @@ from ._interface import StructurizrWorkspaceExporter
 from ._interface import ExportResult
 from ._interface import ExportedWorkspace
 from ._interface import ExportFailure
+import _logging_tools
 import os
 
 from pathlib import Path
@@ -66,13 +68,13 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         flags=re.DOTALL,
     )
 
-    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path, stdout_path: Path, stderr_path: Path):
+    _LOG_PREFIX: Final = "StructurizrLite"
+
+    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path, stdout_path: Path, stderr_path: Path, log: logging.Logger):
         self.__structurizr_lite_dir = structurizr_lite_dir
         self.__java_path = java_path
         self.__syntax_plugin_path = syntax_plugin_path
-
-        print(f"Stdout path: {stdout_path.absolute()}")
-        print(f"Stderr path: {stderr_path.absolute()}")
+        self.__log = _logging_tools.with_prefix(log, self._LOG_PREFIX)
 
         self.__structurizr_lite_jar = self.__get_structurizr_lite_jar_path(self.__structurizr_lite_dir)
         self.__context_dir = self.__get_context_directory(self.__structurizr_lite_dir)
@@ -87,17 +89,12 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         shutil.copytree(workspace_path.parent, self.__workspace_dir, dirs_exist_ok=True)
         shutil.copyfile(workspace_path, self.__workspace_dir / self._WORKSPACE_DEFAULT_FILE_NAME)
 
-        print("[StructurizrLite] Get workspace ...")
-
-        print("[StructurizrLite] Get credentials ...")
-        credentials = self.__get_credentials()
-        print(f"[StructurizrLite] Credentials: {credentials}")
+        with _logging_tools.log_action(self.__log, "Get credentials"):
+            credentials = self.__get_credentials()
 
         try:
-            print("[StructurizrLite] Get workspace ...")
-            workspace = self.__get_workspace(credentials)
-            print(f"[StructurizrLite] workspace: {json.dumps(workspace)}")
-            return workspace
+            with _logging_tools.log_action(self.__log, "Get workspace"):
+                return self.__get_workspace(credentials)
         except requests.HTTPError as e:
             if e.response.status_code == 400:
                 return ExportFailure(e.response.content.decode("utf-8"))
@@ -105,17 +102,15 @@ class StructurizrLite(StructurizrWorkspaceExporter):
             raise e
 
     def close(self) -> None:
-        print("[StructurizrLite] Close ...")
-        self.__server_process.kill()
-        self.__server_process.wait()
+        with _logging_tools.log_action(self.__log, "Close"):
+            self.__server_process.kill()
+            self.__server_process.wait()
 
-        if self.__context_dir.exists():
-            shutil.rmtree(self.__context_dir)
+            if self.__context_dir.exists():
+                shutil.rmtree(self.__context_dir)
 
-        self.__stdout.close()
-        self.__stderr.close()
-
-        print("[StructurizrLite] Close ... ok")
+            self.__stdout.close()
+            self.__stderr.close()
 
     @classmethod
     def __get_structurizr_lite_jar_path(cls, structurizr_lite_dir: Path) -> Path:
@@ -136,70 +131,72 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         return workspace_dir
 
     def __start_server(self, stdout_path: Path, stderr_path: Path) -> tuple[subprocess.Popen, io.BufferedWriter, io.BufferedWriter]:
-        print("Start Structurize Liter server ...")
-        command = [
-            str((self.__java_path / self._JAVA_EXECUTABLE).absolute()),
-            f"-javaagent:{self.__syntax_plugin_path}",
-            "-jar",
-            str(self.__structurizr_lite_jar),
-            str(self.__context_dir),
-        ]
+        with _logging_tools.log_action(self.__log, "Start Structurizr Lite servier"):
+            command = [
+                str((self.__java_path / self._JAVA_EXECUTABLE).absolute()),
+                f"-javaagent:{self.__syntax_plugin_path}",
+                "-jar",
+                str(self.__structurizr_lite_jar),
+                str(self.__context_dir),
+            ]
 
-        env = os.environ.copy()
-        env["STRUCTURIZR_WORKSPACE_PATH"] = self._WORKSPACE_FOLDER_NAME
+            env = os.environ.copy()
+            env["STRUCTURIZR_WORKSPACE_PATH"] = self._WORKSPACE_FOLDER_NAME
 
-        stdout = stdout_path.open('wb')
-        stderr = stderr_path.open('wb')
+            stdout = stdout_path.open('wb')
+            stderr = stderr_path.open('wb')
 
-        print(f"Command: {command}")
-        process = subprocess.Popen(
-            command,
-            stdout=stdout,
-            stderr=stderr,
-            env=env,
-        )
-
-        try:
-            self.__wait_for_connection()
-        except _ConnectionTimeout as e:
-            process.kill()
-            process.wait()
-            stdout.close()
-            stderr.close()
-            raise _StructurizrLiteError(
-                source_error=e,
-                stdout=stdout_path.read_text() if stdout_path.exists() else "",
-                stderr=stderr_path.read_text() if stderr_path.exists() else "",
+            self.__log.debug(f"Command: {command}")
+            process = subprocess.Popen(
+                command,
+                stdout=stdout,
+                stderr=stderr,
+                env=env,
             )
 
-        return process, stdout, stderr
+            try:
+                self.__wait_for_connection()
+            except _ConnectionTimeout as e:
+                process.kill()
+                process.wait()
+                stdout.close()
+                stderr.close()
+                raise _StructurizrLiteError(
+                    source_error=e,
+                    stdout=stdout_path.read_text() if stdout_path.exists() else "",
+                    stderr=stderr_path.read_text() if stderr_path.exists() else "",
+                )
+
+            return process, stdout, stderr
 
     def __wait_for_connection(self, timeout: float = 60.0, delay: float = 5.0) -> None:
         start_time = time.time()
 
-        while True:
-            try:
-                print("[Connection] Try health check server ...")
-                request_timeout = (start_time + timeout) - time.time()
-                if request_timeout <= 0.0:
-                    raise _ConnectionTimeout()
+        with _logging_tools.log_action(self.__log, "Wait for success connection to server"):
+            while True:
+                try:
+                    self.__log.debug("Try health check server ...")
 
-                response = requests.get(
-                    urllib.parse.urljoin(self._SERVER_ADDRESS, "/health"),
-                    timeout=request_timeout,
-                )
-                response.raise_for_status()
-                print("[Connection] Try health check server ... ok")
-                return
+                    request_timeout = (start_time + timeout) - time.time()
+                    if request_timeout <= 0.0:
+                        raise _ConnectionTimeout()
 
-            except (ConnectionError, OSError) as e:
-                elapsed_time = time.time() - start_time
-                print(f"[Connection] Health check failed. Elapsed time: {start_time}")
+                    response = requests.get(
+                        urllib.parse.urljoin(self._SERVER_ADDRESS, "/health"),
+                        timeout=request_timeout,
+                    )
+                    response.raise_for_status()
 
-                if elapsed_time >= timeout:
-                    raise _ConnectionTimeout() from e
+                    return
 
-                time.sleep(delay)
+                except (ConnectionError, OSError) as e:
+                    elapsed_time = time.time() - start_time
+                    self.__log.debug(f"Health check failed. Elapsed time: {elapsed_time}")
+
+                    if elapsed_time >= timeout:
+                        raise _ConnectionTimeout() from e
+
+                    time.sleep(delay)
 
     def __get_credentials(self) -> _Credentials:
         response = requests.get("http://localhost:8080/workspace/diagrams")

@@ -70,6 +70,7 @@ def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release
             syntax_plugin_path=syntax_plugin_path,
             stdout_path=temp_dir_path / "stdout.txt",
             stderr_path=temp_dir_path / "stderr.txt",
+            log=log,
         )
 
     return _create_structurizr_lite_exporter
