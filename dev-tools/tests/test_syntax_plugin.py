@@ -45,19 +45,26 @@ class ReducedTestConfiguration:
     workspace_path: Path
 
 
+def _validate_path(path: Path) -> Path:
+    path = path.resolve()
+    if not path.exists():
+        raise ValueError(f"Path '{path.absolute()}' not exists")
+    return path
+
+
 @pytest.fixture
 def syntax_plugin_path(request: pytest.FixtureRequest) -> Path:
-    return request.config.getoption('--plugin-path')
+    return _validate_path(request.config.getoption('--plugin-path'))
 
 
 @pytest.fixture
 def java_path(request: pytest.FixtureRequest) -> Path:
-    return request.config.getoption('--java-path')
+    return _validate_path(request.config.getoption('--java-path'))
 
 
 @pytest.fixture
 def samples_dir_path(request: pytest.FixtureRequest) -> Path:
-    return request.config.getoption("--samples-dir")
+    return _validate_path(request.config.getoption("--samples-dir"))
 
 
 @contextlib.contextmanager
