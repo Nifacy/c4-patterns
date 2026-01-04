@@ -6,7 +6,7 @@ import zipfile
 import _exporters
 from _cached_downloader import CachedDownloader
 import _logging_tools
-import _release_extractor
+import _exporter_release
 
 from pathlib import Path
 import logging
@@ -22,7 +22,7 @@ class ExporterFactory(Protocol):
         ...
 
 
-def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release: _release_extractor.StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> ExporterFactory:
+def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release: _exporter_release.StructurizrCliRelease, temp_dir_path: Path, log: logging.Logger) -> ExporterFactory:
     structurizr_archive_path = temp_dir_path / _STRUCTURIZR_CLI_ARCHIVE_NAME
     structurizr_cli_dir = temp_dir_path / _STRUCTURIZR_CLI_DIR
 
@@ -51,7 +51,7 @@ def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release:
     return _create_structurizr_cli_exporter
 
 
-def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release: _release_extractor.StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> ExporterFactory:
+def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release: _exporter_release.StructurizrLiteRelease, temp_dir_path: Path, log: logging.Logger) -> ExporterFactory:
     structurizr_lite_dir = temp_dir_path / "structurizr-lite"
     structurizr_lite_dir.mkdir()
 
@@ -75,9 +75,9 @@ def _get_structurizr_lite_exporter_factory(downloader: CachedDownloader, release
     return _create_structurizr_lite_exporter
 
 
-def get_exporter_factory(downloader: CachedDownloader, release: _release_extractor.ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> ExporterFactory:
+def get_exporter_factory(downloader: CachedDownloader, release: _exporter_release.ExporterRelease, temp_dir_path: Path, log: logging.Logger) -> ExporterFactory:
     match release:
-        case _release_extractor.StructurizrCliRelease() as cli_release:
+        case _exporter_release.StructurizrCliRelease() as cli_release:
             return _get_structurizr_cli_exporter_factory(downloader, cli_release, temp_dir_path, log)
-        case _release_extractor.StructurizrLiteRelease() as lite_release:
+        case _exporter_release.StructurizrLiteRelease() as lite_release:
             return _get_structurizr_lite_exporter_factory(downloader, lite_release, temp_dir_path, log)

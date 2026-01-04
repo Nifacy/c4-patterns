@@ -9,7 +9,7 @@ import pytest
 import _exporter_factory
 import _exporters
 import _logging_tools
-import _release_extractor
+import _exporter_release
 import _cached_downloader
 
 
@@ -29,7 +29,7 @@ class FailedTestResult:
 @dataclasses.dataclass(frozen=True, slots=True)
 class TestConfiguration:
     name: str
-    release: _release_extractor.ExporterRelease
+    release: _exporter_release.ExporterRelease
     result: SuccessTestResult | FailedTestResult
     workspace_path: Path
 
@@ -80,7 +80,7 @@ def _create_exporter(exporter_factory: _exporter_factory.ExporterFactory, java_p
         exporter.close()    
 
 
-def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], reduced_test_configs: Iterable[ReducedTestConfiguration]) -> list[TestConfiguration]:
+def _get_test_configs(releases: Iterable[_exporter_release.ExporterRelease], reduced_test_configs: Iterable[ReducedTestConfiguration]) -> list[TestConfiguration]:
     return [
         TestConfiguration(
             name=reduced_test_config.name,
@@ -98,11 +98,11 @@ def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], re
     [
         *_get_test_configs(
             releases=[
-                _release_extractor.StructurizrCliRelease(
+                _exporter_release.StructurizrCliRelease(
                     version="v2025.03.28",
                     url="https://github.com/structurizr/cli/releases/download/v2025.03.28/structurizr-cli.zip",
                 ),
-                _release_extractor.StructurizrCliRelease(
+                _exporter_release.StructurizrCliRelease(
                     version="v2025.05.28",
                     url="https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip",
                 ),
@@ -147,7 +147,7 @@ def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], re
         ),
         *_get_test_configs(
             releases=[
-                _release_extractor.StructurizrLiteRelease(
+                _exporter_release.StructurizrLiteRelease(
                     version="v2025.03.28",
                     url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
                 ),
