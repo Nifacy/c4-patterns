@@ -29,6 +29,17 @@ class _ConnectionTimeout(Exception):
         super().__init__("Connection to the structurizr lite server timeout reached")
 
 
+
+class _StructurizrLiteError(Exception):
+    def __init__(self, source_error: Exception, stdout: str, stderr: str) -> None:
+        self.source_error = source_error
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def __str__(self) -> str:
+        return f"Error has occurred from structurizr lite side.\nSource Error:\n{self.source_error}\nStdout:\n{self.stdout}\nStderr:\n{self.stderr}\n"
+
+
 @dataclass
 class _Credentials:
     api_key: str
@@ -150,12 +161,16 @@ class StructurizrLite(StructurizrWorkspaceExporter):
 
         try:
             self.__wait_for_connection()
-        except _ConnectionTimeout:
+        except _ConnectionTimeout as e:
             process.kill()
             process.wait()
             stdout.close()
             stderr.close()
-            raise
+            raise _StructurizrLiteError(
+                source_error=e,
+                stdout=stdout_path.read_text() if stdout_path.exists() else "",
+                stderr=stderr_path.read_text() if stderr_path.exists() else "",
+            )
 
         return process, stdout, stderr
 
