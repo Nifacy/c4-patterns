@@ -102,10 +102,10 @@ def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], re
                     version="v2025.03.28",
                     url="https://github.com/structurizr/cli/releases/download/v2025.03.28/structurizr-cli.zip",
                 ),
-                # _release_extractor.StructurizrCliRelease(
-                #     version="v2025.05.28",
-                #     url="https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip",
-                # ),
+                _release_extractor.StructurizrCliRelease(
+                    version="v2025.05.28",
+                    url="https://github.com/structurizr/cli/releases/download/v2025.05.28/structurizr-cli.zip",
+                ),
             ],
             reduced_test_configs=[
                 ReducedTestConfiguration(
@@ -115,81 +115,81 @@ def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], re
                         error_message="Database 'Payment Service' is already used by 'Order Application'",
                     ),
                 ),
-                # ReducedTestConfiguration(
-                #     name="layered",
-                #     workspace_path=Path("layered.dsl"),
-                #     result=SuccessTestResult(
-                #         expected_result_path=Path("results/structurizr-cli/layered.json"),
-                #     ),
-                # ),
-                # ReducedTestConfiguration(
-                #     name="reverse-proxy",
-                #     workspace_path=Path("reverseProxy.dsl"),
-                #     result=SuccessTestResult(
-                #         expected_result_path=Path("results/structurizr-cli/reverseProxy.json"),
-                #     ),
-                # ),
-                # ReducedTestConfiguration(
-                #     name="saga",
-                #     workspace_path=Path("saga.dsl"),
-                #     result=SuccessTestResult(
-                #         expected_result_path=Path("results/structurizr-cli/saga.json"),
-                #     ),
-                # ),
-                # ReducedTestConfiguration(
-                #     name="service-registry",
-                #     workspace_path=Path("serviceRegistry.dsl"),
-                #     result=SuccessTestResult(
-                #         expected_result_path=Path("results/structurizr-cli/serviceRegistry.json"),
-                #     ),
-                # ),
+                ReducedTestConfiguration(
+                    name="layered",
+                    workspace_path=Path("layered.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-cli/layered.json"),
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="reverse-proxy",
+                    workspace_path=Path("reverseProxy.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-cli/reverseProxy.json"),
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="saga",
+                    workspace_path=Path("saga.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-cli/saga.json"),
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="service-registry",
+                    workspace_path=Path("serviceRegistry.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-cli/serviceRegistry.json"),
+                    ),
+                ),
             ]
         ),
-        # *_get_test_configs(
-        #     releases=[
-        #         _release_extractor.StructurizrLiteRelease(
-        #             version="v2025.03.28",
-        #             url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
-        #         ),
-        #     ],
-        #     reduced_test_configs=[
-        #         ReducedTestConfiguration(
-        #             name="database-per-service",
-        #             workspace_path=Path("databasePerService.dsl"),
-        #             result=FailedTestResult(
-        #                 error_message="Database 'Payment Service' is already used by 'Order Application'",
-        #             ),
-        #         ),
-        #         ReducedTestConfiguration(
-        #             name="layered",
-        #             workspace_path=Path("layered.dsl"),
-        #             result=SuccessTestResult(
-        #                 expected_result_path=Path("results/structurizr-lite/layered.json"),
-        #             ),
-        #         ),
-        #         ReducedTestConfiguration(
-        #             name="reverse-proxy",
-        #             workspace_path=Path("reverseProxy.dsl"),
-        #             result=SuccessTestResult(
-        #                 expected_result_path=Path("results/structurizr-lite/reverseProxy.json"),
-        #             ),
-        #         ),
-        #         ReducedTestConfiguration(
-        #             name="saga",
-        #             workspace_path=Path("saga.dsl"),
-        #             result=SuccessTestResult(
-        #                 expected_result_path=Path("results/structurizr-lite/saga.json"),
-        #             ),
-        #         ),
-        #         ReducedTestConfiguration(
-        #             name="service-registry",
-        #             workspace_path=Path("serviceRegistry.dsl"),
-        #             result=SuccessTestResult(
-        #                 expected_result_path=Path("results/structurizr-lite/serviceRegistry.json"),
-        #             ),
-        #         )
-        #     ]
-        # ),
+        *_get_test_configs(
+            releases=[
+                _release_extractor.StructurizrLiteRelease(
+                    version="v2025.03.28",
+                    url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
+                ),
+            ],
+            reduced_test_configs=[
+                ReducedTestConfiguration(
+                    name="database-per-service",
+                    workspace_path=Path("databasePerService.dsl"),
+                    result=FailedTestResult(
+                        error_message="Database 'Payment Service' is already used by 'Order Application'",
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="layered",
+                    workspace_path=Path("layered.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-lite/layered.json"),
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="reverse-proxy",
+                    workspace_path=Path("reverseProxy.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-lite/reverseProxy.json"),
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="saga",
+                    workspace_path=Path("saga.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-lite/saga.json"),
+                    ),
+                ),
+                ReducedTestConfiguration(
+                    name="service-registry",
+                    workspace_path=Path("serviceRegistry.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-lite/serviceRegistry.json"),
+                    ),
+                )
+            ]
+        ),
     ],
     ids=lambda test_config: test_config.param_id,
 )
