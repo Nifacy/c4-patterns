@@ -354,3 +354,5 @@ jobs:
           --java-path $JAVA_HOME/bin \
           --samples-dir temp/samples
       working-directory: dev-tools
+      env:
+        CI: "1"
