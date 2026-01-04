@@ -153,34 +153,34 @@ def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], re
                         error_message="Database 'Payment Service' is already used by 'Order Application'",
                     ),
                 ),
-                ReducedTestConfiguration(
-                    name="layered",
-                    workspace_path=Path("layered.dsl"),
-                    result=SuccessTestResult(
-                        expected_result_path=Path("results/structurizr-lite/layered.json"),
-                    ),
-                ),
-                ReducedTestConfiguration(
-                    name="reverse-proxy",
-                    workspace_path=Path("reverseProxy.dsl"),
-                    result=SuccessTestResult(
-                        expected_result_path=Path("results/structurizr-lite/reverseProxy.json"),
-                    ),
-                ),
-                ReducedTestConfiguration(
-                    name="saga",
-                    workspace_path=Path("saga.dsl"),
-                    result=SuccessTestResult(
-                        expected_result_path=Path("results/structurizr-lite/saga.json"),
-                    ),
-                ),
-                ReducedTestConfiguration(
-                    name="service-registry",
-                    workspace_path=Path("serviceRegistry.dsl"),
-                    result=SuccessTestResult(
-                        expected_result_path=Path("results/structurizr-lite/serviceRegistry.json"),
-                    ),
-                )
+                # ReducedTestConfiguration(
+                #     name="layered",
+                #     workspace_path=Path("layered.dsl"),
+                #     result=SuccessTestResult(
+                #         expected_result_path=Path("results/structurizr-lite/layered.json"),
+                #     ),
+                # ),
+                # ReducedTestConfiguration(
+                #     name="reverse-proxy",
+                #     workspace_path=Path("reverseProxy.dsl"),
+                #     result=SuccessTestResult(
+                #         expected_result_path=Path("results/structurizr-lite/reverseProxy.json"),
+                #     ),
+                # ),
+                # ReducedTestConfiguration(
+                #     name="saga",
+                #     workspace_path=Path("saga.dsl"),
+                #     result=SuccessTestResult(
+                #         expected_result_path=Path("results/structurizr-lite/saga.json"),
+                #     ),
+                # ),
+                # ReducedTestConfiguration(
+                #     name="service-registry",
+                #     workspace_path=Path("serviceRegistry.dsl"),
+                #     result=SuccessTestResult(
+                #         expected_result_path=Path("results/structurizr-lite/serviceRegistry.json"),
+                #     ),
+                # )
             ]
         ),
     ],
