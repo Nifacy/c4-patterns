@@ -180,9 +180,13 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         while True:
             try:
                 print("[Connection] Try health check server ...")
+                request_timeout = (start_time + timeout) - time.time()
+                if request_timeout <= 0.0:
+                    raise _ConnectionTimeout()
+
                 response = requests.get(
                     urllib.parse.urljoin(self._SERVER_ADDRESS, "/health"),
-                    timeout=(start_time + timeout) - time.time(),
+                    timeout=request_timeout,
                 )
                 response.raise_for_status()
                 print("[Connection] Try health check server ... ok")
