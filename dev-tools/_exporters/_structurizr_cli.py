@@ -2,12 +2,23 @@ import json
 from pathlib import Path
 import subprocess
 import sys
-from typing import Final
+from typing import Final, Iterable
 
 from ._interface import ExportedWorkspace
 from ._interface import ExportResult
 from ._interface import ExportFailure
 from ._interface import StructurizrWorkspaceExporter
+
+
+class StructurizrCliProcessError(Exception):
+    def __init__(self, command: Iterable[str], exit_code: int, stdout: str, stderr: str) -> None:
+        self.command = command
+        self.exit_code = exit_code
+        self.stdout = stdout
+        self.stderr = stderr
+
+    def __str__(self) -> str:
+        return f"Structurizr CLI command {self.command} returned non-zero exit status {self.exit_code}\nStdout:\n{self.stdout}\nStderr:\n{self.stderr}"
 
 
 class StructurizrCli(StructurizrWorkspaceExporter):
@@ -56,7 +67,12 @@ class StructurizrCli(StructurizrWorkspaceExporter):
             if process.returncode == 1:
                 return ExportFailure(process.stderr)
 
-            raise
+            raise StructurizrCliProcessError(
+                command=command,
+                exit_code=process.returncode,
+                stdout=process.stdout,
+                stderr=process.stderr,
+            )
 
         workspace_name = workspace_path.name.removesuffix(workspace_path.suffix)
         converted_workspace_path = output_dir / f"{workspace_name}.json"
