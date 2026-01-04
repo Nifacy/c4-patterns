@@ -143,8 +143,8 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         print(f"Command: {command}")
         process = subprocess.Popen(
             command,
-            # stdout=stdout,
-            # stderr=stderr,
+            stdout=stdout,
+            stderr=stderr,
             env=env,
         )
 
@@ -159,27 +159,28 @@ class StructurizrLite(StructurizrWorkspaceExporter):
 
         return process, stdout, stderr
 
-    def __wait_for_connection(self, timeout: float = 60.0) -> None:
-        elapsed_time = 0.0
+    def __wait_for_connection(self, timeout: float = 60.0, delay: float = 5.0) -> None:
+        start_time = time.time()
 
         while True:
-            start_time = time.time()
-
             try:
-                print(f"[Connection] Try health check server ...")
+                print("[Connection] Try health check server ...")
                 response = requests.get(
                     urllib.parse.urljoin(self._SERVER_ADDRESS, "/health"),
-                    timeout=timeout - elapsed_time,
+                    timeout=timeout - start_time,
                 )
                 response.raise_for_status()
+                print("[Connection] Try health check server ... ok")
                 return
 
             except (ConnectionError, OSError) as e:
-                elapsed_time += time.time() - start_time
-                print(f"[Connection] Health check failed. Elapsed time: {elapsed_time}")
+                elapsed_time = time.time() - start_time
+                print(f"[Connection] Health check failed. Elapsed time: {start_time}")
 
                 if elapsed_time >= timeout:
                     raise _ConnectionTimeout() from e
+
+                time.sleep(delay)
 
     def __get_credentials(self) -> _Credentials:
         response = requests.get("http://localhost:8080/workspace/diagrams")
