@@ -350,7 +350,7 @@ jobs:
     - name: Run integration tests
       run: |
         uv run cli.py integration-tests \
-          --plugin-path ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-debug.jar \
+          --plugin-path ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-1.0.jar \
           --java-path $JAVA_HOME/bin \
           --samples-dir ${{ github.workspace }}/.samples
       working-directory: dev-tools
