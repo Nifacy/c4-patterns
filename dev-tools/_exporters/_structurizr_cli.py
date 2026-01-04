@@ -3,6 +3,7 @@ from pathlib import Path
 import subprocess
 import sys
 from typing import Final, Iterable
+import os
 
 from ._interface import ExportedWorkspace
 from ._interface import ExportResult
@@ -54,7 +55,7 @@ class StructurizrCli(StructurizrWorkspaceExporter):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env={
-                "PATH": str(self.__java_path.absolute()),
+                "PATH": f"{os.environ['PATH']}:{self.__java_path.absolute()}",
                 "JAVA_TOOL_OPTIONS": f"-javaagent:{self.__syntax_plugin_path.absolute()}",
             },
             encoding="utf-8",
