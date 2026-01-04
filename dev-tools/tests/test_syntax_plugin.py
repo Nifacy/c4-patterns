@@ -45,28 +45,6 @@ class ReducedTestConfiguration:
     workspace_path: Path
 
 
-def _validate_path(path: Path) -> Path:
-    path = path.resolve()
-    if not path.exists():
-        raise ValueError(f"Path '{path.absolute()}' not exists")
-    return path
-
-
-@pytest.fixture
-def syntax_plugin_path(request: pytest.FixtureRequest) -> Path:
-    return _validate_path(request.config.getoption('--plugin-path'))
-
-
-@pytest.fixture
-def java_path(request: pytest.FixtureRequest) -> Path:
-    return _validate_path(request.config.getoption('--java-path'))
-
-
-@pytest.fixture
-def samples_dir_path(request: pytest.FixtureRequest) -> Path:
-    return _validate_path(request.config.getoption("--samples-dir"))
-
-
 @contextlib.contextmanager
 def _create_exporter(exporter_factory: _exporter_factory.ExporterFactory, java_path: Path, syntax_plugin_path: Path) -> Iterator[_exporters.StructurizrWorkspaceExporter]:
     exporter = exporter_factory(
