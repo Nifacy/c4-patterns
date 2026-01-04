@@ -78,7 +78,7 @@ class CachedDownloader:
                         if percent - last_logged_percent < percent_threshold:
                             continue
 
-                        self.__log.debug("Installed {percent:.2f}%")
+                        self.__log.debug(f"Installed {percent:.2f}%")
                         last_logged_percent = percent
 
             self.__cache_manager.save_cache_file(cache_key, output_path)
