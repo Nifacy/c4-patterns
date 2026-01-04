@@ -153,20 +153,20 @@ def _get_test_configs(releases: Iterable[_release_extractor.ExporterRelease], re
                 ),
             ],
             reduced_test_configs=[
-                ReducedTestConfiguration(
-                    name="database-per-service",
-                    workspace_path=Path("databasePerService.dsl"),
-                    result=FailedTestResult(
-                        error_message="Database 'Payment Service' is already used by 'Order Application'",
-                    ),
-                ),
                 # ReducedTestConfiguration(
-                #     name="layered",
-                #     workspace_path=Path("layered.dsl"),
-                #     result=SuccessTestResult(
-                #         expected_result_path=Path("results/structurizr-lite/layered.json"),
+                #     name="database-per-service",
+                #     workspace_path=Path("databasePerService.dsl"),
+                #     result=FailedTestResult(
+                #         error_message="Database 'Payment Service' is already used by 'Order Application'",
                 #     ),
                 # ),
+                ReducedTestConfiguration(
+                    name="layered",
+                    workspace_path=Path("layered.dsl"),
+                    result=SuccessTestResult(
+                        expected_result_path=Path("results/structurizr-lite/layered.json"),
+                    ),
+                ),
                 # ReducedTestConfiguration(
                 #     name="reverse-proxy",
                 #     workspace_path=Path("reverseProxy.dsl"),
