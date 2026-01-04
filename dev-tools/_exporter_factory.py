@@ -1,3 +1,5 @@
+import stat
+import sys
 from typing import Final, Protocol
 import zipfile
 
@@ -12,6 +14,7 @@ import logging
 
 _STRUCTURIZR_CLI_ARCHIVE_NAME: Final = "structurizr-cli.zip"
 _STRUCTURIZR_CLI_DIR: Final = "structurizr-cli"
+_STRUCTURIZR_CLI_SHELL_FILE: Final = "structurizr.sh"
 
 
 class ExporterFactory(Protocol):
@@ -32,6 +35,11 @@ def _get_structurizr_cli_exporter_factory(downloader: CachedDownloader, release:
     with _logging_tools.log_action(log, "Extract structurizr cli"):
         with zipfile.ZipFile(structurizr_archive_path) as archive:
             archive.extractall(structurizr_cli_dir)
+
+    if sys.platform != "win32":
+        script_path = structurizr_cli_dir / _STRUCTURIZR_CLI_SHELL_FILE
+        current_permissions = script_path.stat().st_mode
+        script_path.chmod(current_permissions | stat.S_IXUSR)
 
     def _create_structurizr_cli_exporter(java_path: Path, syntax_plugin_path: Path) -> _exporters.StructurizrCli:
         return _exporters.StructurizrCli(
