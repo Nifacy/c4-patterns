@@ -11,3 +11,4 @@
 
 - Added CHANGELOG validation in Pull Requests ([#63](https://github.com/Nifacy/c4-patterns/issues/63))
 - Added source code formatting support ([#33](https://github.com/Nifacy/c4-patterns/issues/33))
+- Added integration tests for syntax plugin ([#68](https://github.com/Nifacy/c4-patterns/issues/68))

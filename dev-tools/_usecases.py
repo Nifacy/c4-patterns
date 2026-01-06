@@ -1,18 +1,24 @@
-import contextlib
 from dataclasses import dataclass
 import itertools
 import logging
 from pathlib import Path
-from typing import Iterator
+import sys
+from typing import Final, Iterator
 
 import github
 import marko
+import pytest
 
 import _parser.markdown
 
 import _change_log_parser
 import _change_log
 import _github
+import _logging_tools
+
+
+_CUR_DIR_PATH: Final = Path(__file__).parent
+_SYNTAX_PLUGIN_TEST_FILE_PATH: Final = _CUR_DIR_PATH / "tests" / "test_syntax_plugin.py"
 
 
 @dataclass
@@ -32,6 +38,13 @@ class ValidateIssueAddedArgs:
     file: Path
     pr_location: _github.PullRequestLocation
     github_token: str | None
+
+
+@dataclass
+class TestSyntaxPluginArgs:
+    syntax_plugin_path: Path
+    java_path: Path
+    samples_dir: Path
 
 
 class ValidationIssueError(Exception):
@@ -64,19 +77,6 @@ def _parse_change_log(file: Path, log: logging.Logger) -> _change_log.ChangeLog:
     return change_log
 
 
-@contextlib.contextmanager
-def _log_action(log: logging.Logger, action: str) -> Iterator[None]:
-    log.debug(f"{action}: started")
-
-    try:
-        yield
-    except Exception as e:
-        log.debug(f"{action}: failed: {e}")
-        raise
-    else:
-        log.debug(f"{action}: completed")
-
-
 def _extract_issue_links(change_log: _change_log.ChangeLog) -> Iterator[str]:
     for version_changes in change_log.version_changes:
         all_version_changes = itertools.chain(
@@ -96,7 +96,7 @@ def validate_structure(args: ValidateStructureArgs, log: logging.Logger) -> None
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    with _log_action(log, "Validating CHANGELOG structure"):
+    with _logging_tools.log_action(log, "Validating CHANGELOG structure"):
         _parse_change_log(args.file, log)
 
     log.info("Validation passed successfully!")
@@ -106,11 +106,11 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    with _log_action(log, "Validating Issues states"):
-        with _log_action(log, "Parse CHANGELOG file"):
+    with _logging_tools.log_action(log, "Validating Issues states"):
+        with _logging_tools.log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
-        with _log_action(log, "Get issue infos"):
+        with _logging_tools.log_action(log, "Get issue infos"):
             github_client = _init_github_client(args.github_token)
             issue_links = _extract_issue_links(change_log)
             issue_infos = [
@@ -118,14 +118,14 @@ def validate_issues(args: ValidateIssuesArgs, log: logging.Logger) -> None:
                 for issue_link in issue_links
             ]
 
-        with _log_action(log, "Get linkes issue infos"):
+        with _logging_tools.log_action(log, "Get linkes issue infos"):
             pr_info = _github.get_pull_request_info(
                 github_token=args.github_token,
                 pr_location=args.pr_location,
             )
             linked_issue_ids = {issue.number for issue in pr_info.pinned_issues}
 
-        with _log_action(log, "Check issues state"):
+        with _logging_tools.log_action(log, "Check issues state"):
             problem_issues: list[_github.IssueInfo] = []
 
             for issue_info in issue_infos:
@@ -177,18 +177,18 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
     if not args.file.exists():
         raise FileNotFoundError(f"File {args.file} does not exist")
 
-    with _log_action(log, "Validating Issue added"):
-        with _log_action(log, "Parse CHANGELOG file"):
+    with _logging_tools.log_action(log, "Validating Issue added"):
+        with _logging_tools.log_action(log, "Parse CHANGELOG file"):
             change_log = _parse_change_log(args.file, log)
 
-        with _log_action(log, "Get linked issue infos"):
+        with _logging_tools.log_action(log, "Get linked issue infos"):
             pr_info = _github.get_pull_request_info(
                 github_token=args.github_token,
                 pr_location=args.pr_location,
             )
             linked_issue_ids = {issue.number for issue in pr_info.pinned_issues}
 
-        with _log_action(log, "Get issues in last version changes"):
+        with _logging_tools.log_action(log, "Get issues in last version changes"):
             issue_infos = _get_last_version_change_issues(
                 change_log, args.github_token, log
             )
@@ -197,7 +197,7 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
             for issue_info in issue_infos:
                 log.debug(f"\t- {issue_info}")
 
-        with _log_action(log, "Check issue states"):
+        with _logging_tools.log_action(log, "Check issue states"):
             problem_issues: list[_github.IssueInfo] = []
 
             for linked_issue_id in linked_issue_ids:
@@ -221,13 +221,26 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
     log.info(f"Linked issue states are valid")
 
 
+def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
+    sys.exit(pytest.main([
+        str(_SYNTAX_PLUGIN_TEST_FILE_PATH),
+        f'--plugin-path={args.syntax_plugin_path.absolute()}',
+        f'--java-path={args.java_path.absolute()}',
+        f'--samples-dir={args.samples_dir.absolute()}',
+        '--verbose',
+        '--log-cli-level=DEBUG',
+    ]))
+
+
 __all__ = [
     "validate_structure",
     "validate_issues",
     "validate_issue_added",
+    "test_syntax_plugin",
     "ValidateStructureArgs",
     "ValidateIssuesArgs",
     "ValidateIssueAddedArgs",
+    "TestSyntaxPluginArgs",
     "ValidationIssueError",
     "IssueNotFoundError",
 ]
