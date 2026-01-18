@@ -27,6 +27,7 @@ dependencies {
     compileOnly 'org.aspectj:aspectjrt:1.9.24'
     compileOnly 'com.structurizr:structurizr-dsl:3.2.1'
     implementation "io.github.nifacy.c4patterns:pattern-syntax-parser:${patternSyntaxParserVersion}"
+    implementation 'org.aspectj:aspectjweaver:1.9.24'
 }
 
 java {
@@ -47,9 +48,14 @@ spotless {
     }
 }
 
-shadowJar {
+def buildLite = tasks.register('buildLite', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    description = 'Build lite version of pattern syntax plugin'
+
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+
     archiveBaseName = rootProject.name
-    archiveClassifier = ''
+    archiveClassifier = 'lite'
     archiveVersion = project.version
 
     dependencies {
@@ -57,8 +63,32 @@ shadowJar {
     }
 }
 
+def buildStandalone = tasks.register('buildStandalone', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    description = 'Build standalone version of pattern syntax plugin (deprecated)'
+
+    from sourceSets.main.output
+    configurations = [project.configurations.runtimeClasspath]
+
+    archiveBaseName = rootProject.name
+    archiveClassifier = 'standalone'
+    archiveVersion = project.version
+
+    dependencies {
+        include(dependency('io.github.nifacy.c4patterns:pattern-syntax-parser:.*'))
+        include(dependency('org.aspectj:aspectjweaver:.*'))
+    }
+
+    manifest {
+        attributes(
+            'Premain-Class': 'io.github.nifacy.c4patterns.syntax.plugin.PatternSyntaxPlugin',
+            'Can-Redefine-Classes': 'true',
+            'Can-Retransform-Classes': 'true'
+        )
+    }
+}
+
 build {
-    dependsOn shadowJar
+    dependsOn buildLite, buildStandalone
 }
 
 tasks.register('formatCheck') {
