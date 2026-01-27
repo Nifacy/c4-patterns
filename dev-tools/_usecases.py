@@ -42,7 +42,7 @@ class ValidateIssueAddedArgs:
 
 @dataclass
 class TestSyntaxPluginArgs:
-    syntax_plugin_path: Path
+    syntax_plugin_dist_path: Path
     java_path: Path
     samples_dir: Path
 
@@ -224,7 +224,7 @@ def validate_issue_added(args: ValidateIssueAddedArgs, log: logging.Logger) -> N
 def test_syntax_plugin(args: TestSyntaxPluginArgs, log: logging.Logger) -> None:
     sys.exit(pytest.main([
         str(_SYNTAX_PLUGIN_TEST_FILE_PATH),
-        f'--plugin-path={args.syntax_plugin_path.absolute()}',
+        f'--plugin-dist={args.syntax_plugin_dist_path.absolute()}',
         f'--java-path={args.java_path.absolute()}',
         f'--samples-dir={args.samples_dir.absolute()}',
         '--verbose',

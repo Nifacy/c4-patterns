@@ -107,10 +107,10 @@ def _init_changelog_parser(parser: argparse.ArgumentParser) -> None:
 
 def _init_integration_tests_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
-        "--plugin-path",
+        "--plugin-dist",
         type=Path,
         required=True,
-        help="Path to pattern-syntax-plugin JAR archive",
+        help="Distributive directory with JAR archives of lite and standalone pattern-syntax-plugin versions",
     )
 
     parser.add_argument(
@@ -186,7 +186,7 @@ def _extract_command_args(args: argparse.Namespace) -> _CommandArgs:
                     )
         case "integration-tests":
             return _usecases.TestSyntaxPluginArgs(
-                syntax_plugin_path=args.plugin_path,
+                syntax_plugin_dist_path=args.plugin_dist,
                 java_path=args.java_path,
                 samples_dir=args.samples_dir,
             )
