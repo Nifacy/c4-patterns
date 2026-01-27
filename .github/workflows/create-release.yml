@@ -271,7 +271,8 @@ jobs:
         cp ${{ github.workspace }}/examples/examples.zip release-files/examples.zip
         cp ${{ github.workspace }}/pattern-lens/* release-files/
         cp ${{ github.workspace }}/pattern-syntax-parser/* release-files/
-        cp ${{ github.workspace }}/pattern-syntax-plugin/* release-files/
+        cp ${{ github.workspace }}/pattern-syntax-plugin/*-lite.jar release-files/
+        cp ${{ github.workspace }}/pattern-syntax-plugin/*-standalone.jar release-files/
         cp ${{ github.workspace }}/vs-code-extension/* release-files/
 
     - name: Create release
