@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any
+from .helpers import PatternSyntaxPluginDistributive
 
 import pytest
 
@@ -14,10 +15,10 @@ class _ExistingPath(Path):
 
 def pytest_addoption(parser: pytest.Parser):
     parser.addoption(
-        "--plugin-path",
+        "--plugin-dist",
         type=_ExistingPath,
         required=True,
-        help="Path to pattern-syntax-plugin JAR archive",
+        help="Distributive directory with JAR archives of lite and standalone pattern-syntax-plugin versions",
     )
 
     parser.addoption(
@@ -36,8 +37,9 @@ def pytest_addoption(parser: pytest.Parser):
 
 
 @pytest.fixture
-def syntax_plugin_path(request: pytest.FixtureRequest) -> Path:
-    return request.config.getoption('--plugin-path')
+def syntax_plugin_dist(request: pytest.FixtureRequest) -> PatternSyntaxPluginDistributive:
+    plugin_dist_dir = request.config.getoption('--plugin-dist')
+    return PatternSyntaxPluginDistributive.from_dist_directory(plugin_dist_dir)
 
 
 @pytest.fixture

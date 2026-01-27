@@ -270,7 +270,7 @@ jobs:
       run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-syntax-parser.version=debug build
       working-directory: pattern-syntax-plugin
 
-    - name: Publish jar file
+    - name: Publish jar files
       uses: actions/upload-artifact@v4
       with:
         name: pattern-syntax-plugin
@@ -335,11 +335,23 @@ jobs:
         name: examples
         path: ${{ github.workspace }}/.samples
 
-    - name: Download syntax plugin
+    - name: Download syntax plugin distributive
       uses: actions/download-artifact@v4
       with:
         name: pattern-syntax-plugin
         path: ${{ github.workspace }}/.pattern-syntax-plugin
+
+    - name: Prepare jar archive of lite version
+      run: |
+        mv \
+          ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-1.0-lite.jar \
+          ${{ github.workspace }}/.pattern-syntax-plugin/lite.jar
+
+    - name: Prepare jar archive of standalone version
+      run: |
+        mv \
+          ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-1.0-standalone.jar \
+          ${{ github.workspace }}/.pattern-syntax-plugin/standalone.jar
 
     - name: Setup java
       uses: actions/setup-java@v5
@@ -350,7 +362,7 @@ jobs:
     - name: Run integration tests
       run: |
         uv run cli.py integration-tests \
-          --plugin-path ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-1.0.jar \
+          --plugin-dist ${{ github.workspace }}/.pattern-syntax-plugin/ \
           --java-path $JAVA_HOME/bin \
           --samples-dir ${{ github.workspace }}/.samples
       working-directory: dev-tools

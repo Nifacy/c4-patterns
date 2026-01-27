@@ -1,4 +1,5 @@
 import base64
+import contextlib
 import copy
 from dataclasses import dataclass
 import hashlib
@@ -11,7 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
-from typing import Any, Final
+from typing import Any, ClassVar, Final, Iterator
 import urllib.parse
 
 import requests
@@ -54,7 +55,7 @@ class _AuthData:
     nonce: str
 
 
-class StructurizrLite(StructurizrWorkspaceExporter):
+class _StructurizrLiteExporterBase(StructurizrWorkspaceExporter):
     _STRUCTURIZR_LITE_FILENAME: Final = "structurizr-lite.war"
     _CONTEXT_FOLDER_NAME: Final = "context"
     _WORKSPACE_FOLDER_NAME: Final = "workspace"
@@ -68,12 +69,11 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         flags=re.DOTALL,
     )
 
-    _LOG_PREFIX: Final = "StructurizrLite"
+    _LOG_PREFIX: ClassVar[str] = "StructurizrLite"
 
-    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path, stdout_path: Path, stderr_path: Path, log: logging.Logger):
+    def __init__(self, structurizr_lite_dir: Path, java_path: Path, stdout_path: Path, stderr_path: Path, log: logging.Logger):
         self.__structurizr_lite_dir = structurizr_lite_dir
         self.__java_path = java_path
-        self.__syntax_plugin_path = syntax_plugin_path
         self.__log = _logging_tools.with_prefix(log, self._LOG_PREFIX)
 
         self.__structurizr_lite_jar = self.__get_structurizr_lite_jar_path(self.__structurizr_lite_dir)
@@ -132,9 +132,14 @@ class StructurizrLite(StructurizrWorkspaceExporter):
 
     def __start_server(self, stdout_path: Path, stderr_path: Path) -> tuple[subprocess.Popen, io.BufferedWriter, io.BufferedWriter]:
         with _logging_tools.log_action(self.__log, "Start Structurizr Lite servier"):
+            if (java_agent_path := self._java_agent_path) is not None:
+                java_agent_part = [f"-javaagent:{java_agent_path.absolute()}"]
+            else:
+                java_agent_part = []
+
             command = [
                 str((self.__java_path / self._JAVA_EXECUTABLE).absolute()),
-                f"-javaagent:{self.__syntax_plugin_path}",
+                *java_agent_part,
                 "-jar",
                 str(self.__structurizr_lite_jar),
                 str(self.__context_dir),
@@ -155,7 +160,7 @@ class StructurizrLite(StructurizrWorkspaceExporter):
             )
 
             try:
-                self.__wait_for_connection()
+                self.__wait_for_connection(timeout=30.0)
             except _ConnectionTimeout as e:
                 process.kill()
                 process.wait()
@@ -267,3 +272,87 @@ class StructurizrLite(StructurizrWorkspaceExporter):
         views_config.pop("lastSavedView", None)
 
         return normalized_workspace
+
+    @property
+    def _java_agent_path(self) -> Path | None:
+        return None
+
+
+class StructurizrLiteForLiteVersion(_StructurizrLiteExporterBase):
+    _LOG_PREFIX: Final = "StructurizrLiteForLite"
+    _PATCH_DIR_NAME: Final = "patch"
+
+    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path, stdout_path: Path, stderr_path: Path, log: logging.Logger, jweaver_path: Path):
+        self.__add_plugin_in_structurizr_lite(structurizr_lite_dir, syntax_plugin_path)
+        self.__jweaver_path = jweaver_path
+
+        super().__init__(
+            structurizr_lite_dir=structurizr_lite_dir,
+            java_path=java_path,
+            stdout_path=stdout_path,
+            stderr_path=stderr_path,
+            log=log,
+        )
+
+    @classmethod
+    def __add_plugin_in_structurizr_lite(cls, structurizr_lite_dir: Path, syntax_plugin_path: Path) -> None:
+        with cls.__get_patch_dir(structurizr_lite_dir) as patch_dir:
+            dest_dir = patch_dir / "WEB-INF" / "lib" / syntax_plugin_path.name
+            dest_dir.parent.mkdir(parents=True)
+
+            shutil.copy(syntax_plugin_path, dest_dir)
+
+            subprocess.run(
+                [
+                    cls.__get_jar_executable(),
+                    "-uf0",
+                    structurizr_lite_dir / cls._STRUCTURIZR_LITE_FILENAME,
+                    "-C",
+                    patch_dir,
+                    dest_dir.relative_to(patch_dir),
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            )
+
+    @classmethod
+    @contextlib.contextmanager
+    def __get_patch_dir(cls, structurizr_lite_dir: Path) -> Iterator[Path]:
+        patch_dir = structurizr_lite_dir / cls._PATCH_DIR_NAME
+        patch_dir.mkdir()
+
+        try:
+            yield patch_dir
+        finally:
+            shutil.rmtree(patch_dir)
+
+    @classmethod
+    def __get_jar_executable(self) -> Path:
+        jar_executable_path = shutil.which('jar')
+        if jar_executable_path is None:
+            raise RuntimeError("Cannot find utility 'jar' in current environment")
+        return Path(jar_executable_path)
+
+    @property
+    def _java_agent_path(self) -> Path:
+        return self.__jweaver_path
+
+
+class StructurizrLiteForStandaloneVersion(_StructurizrLiteExporterBase):
+    _LOG_PREFIX: Final = "StructurizrLiteForStandalone"
+
+    def __init__(self, structurizr_lite_dir: Path, java_path: Path, syntax_plugin_path: Path, stdout_path: Path, stderr_path: Path, log: logging.Logger):
+        self.__syntax_plugin_path = syntax_plugin_path
+
+        super().__init__(
+            structurizr_lite_dir=structurizr_lite_dir,
+            java_path=java_path,
+            stdout_path=stdout_path,
+            stderr_path=stderr_path,
+            log=log,
+        )
+
+    @property
+    def _java_agent_path(self) -> Path:
+        return self.__syntax_plugin_path
