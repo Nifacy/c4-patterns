@@ -23,6 +23,7 @@ C4 DSL Patterns расширяет синтаксис Structurizr DSL новой
 
 - **Structurizr DSL**: версия `3.2.1`
 - **Java Development Kit (JDK)**: версия `17`
+- **AspectJ Weaver (для lite-версии)**: версия `1.9.24`
 
 ## Документация
 
