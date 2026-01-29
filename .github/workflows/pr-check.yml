@@ -267,7 +267,7 @@ jobs:
       run: rsync -av ${{ github.workspace }}/pattern-syntax-parser/ ${{ github.workspace }}/repo/
 
     - name: Run build
-      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdeps.pattern-syntax-parser.version=debug build
+      run: gradle -Dmaven.repo.local=${{ github.workspace }}/repo -Pdebug build
       working-directory: pattern-syntax-plugin
 
     - name: Publish jar files
@@ -344,13 +344,13 @@ jobs:
     - name: Prepare jar archive of lite version
       run: |
         mv \
-          ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-1.0-lite.jar \
+          ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-debug-lite.jar \
           ${{ github.workspace }}/.pattern-syntax-plugin/lite.jar
 
     - name: Prepare jar archive of standalone version
       run: |
         mv \
-          ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-1.0-standalone.jar \
+          ${{ github.workspace }}/.pattern-syntax-plugin/pattern-syntax-plugin-debug-standalone.jar \
           ${{ github.workspace }}/.pattern-syntax-plugin/standalone.jar
 
     - name: Setup java
