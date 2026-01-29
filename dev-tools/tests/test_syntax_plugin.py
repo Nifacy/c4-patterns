@@ -21,8 +21,12 @@ _JWEAVER_RELEASES: Final = (
     _exporter_factory.JWeaverRelease(
         url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.24/aspectjweaver-1.9.24.jar",
         version="1.9.24",
-    )
-,)
+    ),
+    _exporter_factory.JWeaverRelease(
+        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.25/aspectjweaver-1.9.25.jar",
+        version="1.9.25",
+    ),
+)
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class SuccessTestResult:
