@@ -4,7 +4,7 @@ plugins {
     id 'com.diffplug.spotless' version '7.0.4'
 }
 
-version = '1.0'
+version = project.hasProperty("debug") ? 'debug' : releaseVersion
 
 repositories {
     mavenCentral()

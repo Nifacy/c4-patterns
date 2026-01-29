@@ -6,9 +6,9 @@ plugins {
 }
 
 group = 'com.patterns'
-version = '1.0'
+version = project.hasProperty("debug") ? 'debug' : releaseVersion
 
-def patternSyntaxParserVersion = project.findProperty("deps.pattern-syntax-parser.version") ?: '1.0'
+def patternSyntaxParserVersion = project.hasProperty("debug") ? 'debug' : releaseVersion
 
 repositories {
     mavenLocal()
