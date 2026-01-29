@@ -188,7 +188,7 @@ jobs:
         build-scan-terms-of-use-agree: 'yes'
 
     - name: Run build
-      run: gradle build
+      run: gradle build -Pdebug
       working-directory: pattern-lens
 
     - name: Publish jar file
