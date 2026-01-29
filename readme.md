@@ -21,7 +21,7 @@ C4 DSL Patterns расширяет синтаксис Structurizr DSL новой
 
 ## Требования
 
-- **Structurizr DSL**: версия `3.2.1`
+- **Structurizr DSL**: версии `3.2.1` - `4.1.0`
 - **Java Development Kit (JDK)**: версия `17`
 - **AspectJ Weaver (для lite-версии)**: версии `1.9.24` - `1.9.25`
 

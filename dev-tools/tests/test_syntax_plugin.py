@@ -162,6 +162,10 @@ def _get_test_configs(
                     version="v2025.03.28",
                     url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
                 ),
+                _exporter_release.StructurizrLiteRelease(
+                    version="v2025.05.28",
+                    url="https://github.com/structurizr/lite/releases/download/v2025.05.28/structurizr-lite.war",
+                ),
             ],
             reduced_test_configs=[
                 ReducedTestConfiguration(
