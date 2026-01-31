@@ -1,9 +1,10 @@
 plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.diffplug.spotless' version '7.0.4'
 }
 
-version = '1.0'
+version = project.hasProperty("debug") ? 'debug' : releaseVersion
 
 repositories {
     mavenCentral()
@@ -12,6 +13,12 @@ repositories {
 dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.structurizr:structurizr-dsl:3.2.1'
+}
+
+spotless {
+    java {
+        eclipse().configFile("${rootProject.projectDir}/../common/formatter-config.xml")
+    }
 }
 
 java {
@@ -38,3 +45,16 @@ shadowJar {
 build {
     dependsOn shadowJar
 }
+
+tasks.register('formatCheck') {
+    group = 'formatting'
+    description = "Checks if code follows the formatting rules. Doesn't make changes"
+    dependsOn 'spotlessCheck'
+}
+
+tasks.register('formatApply') {
+    group = 'formatting'
+    description = 'Applies formatting rules to all source files'
+    dependsOn 'spotlessApply'
+}
+

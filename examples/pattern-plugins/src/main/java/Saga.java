@@ -18,22 +18,22 @@ public class Saga extends Pattern<Saga.Arguments> {
     public static Optional<String> getDocumentation() {
 
         String builder = "### Saga\n" +
-                "Суть паттерна заключается в организации транзакций, при этом придерживаясь концепции микросервисов.\n" +
-                "\n" +
-                "#### Проблема\n" +
-                "У нас есть много отдельных сервисов, каждый из которых ответственен за часть функциональности.\n" +
-                "Однако, в некоторых случаях требуется реализовать цепочку вызовов, затрагивающую несколько сервисов,\n" +
-                "при этом обеспечив согласованность - если на каком-то этапе произошла ошибка,\n" +
-                "то система должна вернуться к состоянию, в котором она была до выполнения транзакции.\n" +
-                "\n" +
-                "#### Решение\n" +
-                "Паттерн описывает вариацию Orchestration-based saga.\n" +
-                "При таком подходе мы добавляем еще один сервис, отвечающий за транзакцию.\n" +
-                "Его называют saga оркестратором.\n" +
-                "\n" +
-                "Его работа заключается в отправке команд другим сервисам в определенном порядке и\n" +
-                "отправке обратных команд при возникновении ошибки. Вариант более приоритетный,\n" +
-                "так как нет мешанины, нет размазывания логики, все находится в отдельном сервисе.\n";
+            "Суть паттерна заключается в организации транзакций, при этом придерживаясь концепции микросервисов.\n" +
+            "\n" +
+            "#### Проблема\n" +
+            "У нас есть много отдельных сервисов, каждый из которых ответственен за часть функциональности.\n" +
+            "Однако, в некоторых случаях требуется реализовать цепочку вызовов, затрагивающую несколько сервисов,\n" +
+            "при этом обеспечив согласованность - если на каком-то этапе произошла ошибка,\n" +
+            "то система должна вернуться к состоянию, в котором она была до выполнения транзакции.\n" +
+            "\n" +
+            "#### Решение\n" +
+            "Паттерн описывает вариацию Orchestration-based saga.\n" +
+            "При таком подходе мы добавляем еще один сервис, отвечающий за транзакцию.\n" +
+            "Его называют saga оркестратором.\n" +
+            "\n" +
+            "Его работа заключается в отправке команд другим сервисам в определенном порядке и\n" +
+            "отправке обратных команд при возникновении ошибки. Вариант более приоритетный,\n" +
+            "так как нет мешанины, нет размазывания логики, все находится в отдельном сервисе.\n";
 
         return Optional.of(builder);
     }
@@ -58,12 +58,19 @@ public class Saga extends Pattern<Saga.Arguments> {
             String stepDescription = item.command;
             String rollbackStepDescription = item.onError;
 
-            System.out.println("[log] [saga] item (" + index + "): service=" + serviceId + ", step=" + stepDescription + ", onError=" + rollbackStepDescription);
+            System.out
+                .println(
+                    "[log] [saga] item (" + index + "): service=" + serviceId + ", step=" + stepDescription
+                        + ", onError=" + rollbackStepDescription
+                );
 
             Container itemService = (Container) findElement(identifiersRegister, serviceId);
 
             if (itemService.getSoftwareSystem() != orchestratorContainer.getSoftwareSystem()) {
-                throw new java.lang.RuntimeException("[error] [saga] services '" + orchestratorId + "' and '" + serviceId + "' must be in same software system");
+                throw new java.lang.RuntimeException(
+                    "[error] [saga] services '" + orchestratorId + "' and '" + serviceId
+                        + "' must be in same software system"
+                );
             }
 
             transactionSteps.add(new SagaItem(itemService, stepDescription));
@@ -74,11 +81,12 @@ public class Saga extends Pattern<Saga.Arguments> {
 
         /* Build relationships */
         ViewSet views = context.getWorkspace().getViews();
-        DynamicView transactionView = views.createDynamicView(
+        DynamicView transactionView = views
+            .createDynamicView(
                 orchestratorContainer.getSoftwareSystem(),
                 "TransactionView",
                 "View of transaction"
-        );
+            );
 
         System.out.println("[log] [saga] autolayout set as applied");
 
@@ -95,11 +103,12 @@ public class Saga extends Pattern<Saga.Arguments> {
         }
 
         // change implementation on 'Graphvis' instead of 'Dagre'
-        transactionView.enableAutomaticLayout(
+        transactionView
+            .enableAutomaticLayout(
                 AutomaticLayout.RankDirection.LeftRight,
                 300,
                 500
-        );
+            );
 
         System.out.println("[log] [saga] steps amount: " + rollbackSteps.size());
         System.out.println("[log] [saga] Script end");
@@ -108,7 +117,9 @@ public class Saga extends Pattern<Saga.Arguments> {
     private Element findElement(IdentifiersRegister identifiersRegister, String elementId) {
         Element foundElement = identifiersRegister.getElement(elementId);
         if (foundElement == null) {
-            throw new java.lang.RuntimeException("[error] [db per service] element with id '" + elementId + "' not found");
+            throw new java.lang.RuntimeException(
+                "[error] [db per service] element with id '" + elementId + "' not found"
+            );
         }
         return foundElement;
     }
@@ -131,7 +142,10 @@ public class Saga extends Pattern<Saga.Arguments> {
         public Container container;
         public String description;
 
-        public SagaItem(Container container, String description) {
+        public SagaItem(
+            Container container,
+            String description
+        ) {
             this.container = container;
             this.description = description;
         }

@@ -1,9 +1,15 @@
 plugins {
     id 'java'
     id 'com.gradleup.shadow' version '8.3.5'
+    id 'com.diffplug.spotless' version '7.0.4'
+}
+spotless {
+    java {
+        eclipse().configFile("${rootProject.projectDir}/../common/formatter-config.xml")
+    }
 }
 
-def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: '1.0'
+def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: releaseVersion
 
 java {
     toolchain {
@@ -107,6 +113,18 @@ task patternExamples(dependsOn: [
         'patternExamples.saga',
         'patternExamples.serviceRegistry'
 ]) {
+}
+
+task formatCheck {
+    group = 'formatting'
+    description = "Checks if code follows the formatting rules. Doesn't make changes"
+    dependsOn 'spotlessCheck'
+}
+
+task formatApply {
+    group = 'formatting'
+    description = 'Applies formatting rules to all source files'
+    dependsOn 'spotlessApply'
 }
 
 build {

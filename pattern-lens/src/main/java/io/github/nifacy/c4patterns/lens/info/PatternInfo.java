@@ -11,7 +11,11 @@ public class PatternInfo {
     private final List<SchemaField> fields;
     private final Optional<String> documentation;
 
-    public PatternInfo(String pluginName, List<SchemaField> fields, Optional<String> documentation) {
+    public PatternInfo(
+        String pluginName,
+        List<SchemaField> fields,
+        Optional<String> documentation
+    ) {
         this.pluginName = pluginName;
         this.fields = fields;
         this.documentation = documentation;

@@ -17,12 +17,12 @@ public class Layered extends Pattern<Layered.Arguments> {
     public static Optional<String> getDocumentation() {
 
         String builder = "### Многозвенная архитектура\n" +
-                "Один из самых простых паттернов. Идея состоит в том, чтобы разбить всю систему на несколько слоев.\n" +
-                "Каждый из слоев имеет следующие особенности и ограничения:\n" +
-                "- Каждый слой может обращаться только к слою на уровень ниже, и не более\n" +
-                "- Все слои образуют порядок. То есть, мы можем сказать, какой слой за каким стоит\n" +
-                "\n" +
-                "В модели C4 слои можно представить в виде групп, так как их физического разграничения нет (если убрать разделение по слоям, то это будет просто набор контейнеров, которые общаются по определенному протоколу).\n";
+            "Один из самых простых паттернов. Идея состоит в том, чтобы разбить всю систему на несколько слоев.\n" +
+            "Каждый из слоев имеет следующие особенности и ограничения:\n" +
+            "- Каждый слой может обращаться только к слою на уровень ниже, и не более\n" +
+            "- Все слои образуют порядок. То есть, мы можем сказать, какой слой за каким стоит\n" +
+            "\n" +
+            "В модели C4 слои можно представить в виде групп, так как их физического разграничения нет (если убрать разделение по слоям, то это будет просто набор контейнеров, которые общаются по определенному протоколу).\n";
 
         return Optional.of(builder);
     }
@@ -73,8 +73,8 @@ public class Layered extends Pattern<Layered.Arguments> {
                     }
 
                     throw new java.lang.RuntimeException(
-                            "Invalid relationship " + element
-                                    + " (layer " + i + ") -> " + relatedElement + " (layer " + layerIndex + ")"
+                        "Invalid relationship " + element
+                            + " (layer " + i + ") -> " + relatedElement + " (layer " + layerIndex + ")"
                     );
                 }
             }
@@ -114,9 +114,10 @@ public class Layered extends Pattern<Layered.Arguments> {
             for (Container element : layer.elements) {
                 if (elementsMap.containsKey(element)) {
                     throw new java.lang.RuntimeException(
-                            "Element '" + element.toString() + "' "
-                                    + "exists in both layers: " + elementsMap.get(element).toString() + " "
-                                    + "and " + index + ".");
+                        "Element '" + element.toString() + "' "
+                            + "exists in both layers: " + elementsMap.get(element).toString() + " "
+                            + "and " + index + "."
+                    );
                 }
 
                 elementsMap.put(element, index);
@@ -140,7 +141,10 @@ public class Layered extends Pattern<Layered.Arguments> {
         public String name;
         public List<Container> elements;
 
-        public LayerGroup(String name, List<Container> elements) {
+        public LayerGroup(
+            String name,
+            List<Container> elements
+        ) {
             this.name = name;
             this.elements = elements;
         }

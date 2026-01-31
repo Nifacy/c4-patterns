@@ -15,7 +15,6 @@ import org.json.JSONObject;
 import io.github.nifacy.c4patterns.lens.info.PatternInfo;
 import io.github.nifacy.c4patterns.lens.info.PatternInfoGetter;
 
-
 public class App {
     private static final String C4_PATTERNS_LIB_PACKAGE = "io.github.nifacy.c4patterns.lib";
     private static final String BASE_CLASS_NAME = C4_PATTERNS_LIB_PACKAGE + ".Pattern";
@@ -30,7 +29,11 @@ public class App {
         }
     }
 
-    private static void handleQuery(String[] args) throws MalformedURLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private static void handleQuery(String[] args)
+        throws MalformedURLException,
+            NoSuchMethodException,
+            IllegalAccessException,
+            InvocationTargetException {
         switch (args[0]) {
             case "is-pattern":
                 boolean result = checkIsPattern(args[1], args[2]);
@@ -45,7 +48,11 @@ public class App {
         }
     }
 
-    private static JSONObject getPatternInfo(String workspacePath, String pluginName) throws MalformedURLException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    private static JSONObject getPatternInfo(String workspacePath, String pluginName)
+        throws MalformedURLException,
+            NoSuchMethodException,
+            IllegalAccessException,
+            InvocationTargetException {
         if (!checkIsPattern(workspacePath, pluginName)) {
             throw new java.lang.RuntimeException(pluginName + " is not a pattern");
         }

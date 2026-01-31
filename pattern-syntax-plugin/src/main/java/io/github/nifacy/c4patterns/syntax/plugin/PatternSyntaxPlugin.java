@@ -1,55 +1,26 @@
 package io.github.nifacy.c4patterns.syntax.plugin;
 
-import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
-import java.security.ProtectionDomain;
-import java.util.List;
-
 
 public class PatternSyntaxPlugin {
-    public static void premain(String args, Instrumentation inst) {
-        inst.addTransformer(new StructurizrTransformer());
+
+    public static void premain(String agentArgs, Instrumentation inst) {
+        try {
+            Class<?> aspectjAgent = Class.forName("org.aspectj.weaver.loadtime.Agent");
+            java.lang.reflect.Method premainMethod = aspectjAgent
+                .getMethod(
+                    "premain",
+                    String.class,
+                    Instrumentation.class
+                );
+            premainMethod.invoke(null, agentArgs, inst);
+        } catch (Exception e) {
+            System.err.println("Failed to initialize AspectJ weaver: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    static class StructurizrTransformer implements ClassFileTransformer {
-
-        private static final List<ClassPatcher> patchers = List.of(
-                new TokenizerPatcher(),
-                new PluginParserPatcher(),
-                new PluginDslContextPatcher()
-        );
-
-        @Override
-        public byte[] transform(
-                Module module,
-                ClassLoader loader,
-                String className,
-                Class<?> classBeingRedefined,
-                ProtectionDomain protectionDomain,
-                byte[] classfileBuffer
-        ) {
-            try {
-                for (ClassPatcher patcher : patchers) {
-                    if (className.equals(patcher.getTargetClassName())) {
-                        byte[] result = patcher.patchClass(
-                                module,
-                                loader,
-                                className,
-                                classBeingRedefined,
-                                protectionDomain,
-                                classfileBuffer
-                        );
-
-                        System.err.println("[PatternSyntaxPlugin] class '" + className + "' patched");
-                        return result;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException("Failed to patch '" + className + "'", e);
-            }
-
-            return null;
-        }
+    public static void agentmain(String agentArgs, Instrumentation inst) {
+        premain(agentArgs, inst);
     }
 }

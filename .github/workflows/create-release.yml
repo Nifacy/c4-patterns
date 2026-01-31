@@ -18,7 +18,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: pattern-lib
+        sparse-checkout: |
+          common
+          pattern-lib
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
@@ -51,7 +53,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: examples
+        sparse-checkout: |
+          common
+          examples
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
@@ -83,7 +87,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: pattern-lens
+        sparse-checkout: |
+          common
+          pattern-lens
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
@@ -111,7 +117,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: pattern-syntax-parser
+        sparse-checkout: |
+          common
+          pattern-syntax-parser
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
@@ -145,7 +153,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        sparse-checkout: pattern-syntax-plugin
+        sparse-checkout: |
+          common
+          pattern-syntax-plugin
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
@@ -261,7 +271,8 @@ jobs:
         cp ${{ github.workspace }}/examples/examples.zip release-files/examples.zip
         cp ${{ github.workspace }}/pattern-lens/* release-files/
         cp ${{ github.workspace }}/pattern-syntax-parser/* release-files/
-        cp ${{ github.workspace }}/pattern-syntax-plugin/* release-files/
+        cp ${{ github.workspace }}/pattern-syntax-plugin/*-lite.jar release-files/
+        cp ${{ github.workspace }}/pattern-syntax-plugin/*-standalone.jar release-files/
         cp ${{ github.workspace }}/vs-code-extension/* release-files/
 
     - name: Create release
