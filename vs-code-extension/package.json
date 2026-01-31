@@ -2,7 +2,7 @@
   "name": "c4-dsl-patterns-extension",
   "displayName": "C4 DSL Patterns",
   "description": "VS Code extension for c4 dsl patterns support",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.96.0"
   },
