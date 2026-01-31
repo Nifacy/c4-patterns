@@ -7,6 +7,7 @@
 - Removed typo in project docs ([#55](https://github.com/Nifacy/c4-patterns/issues/55))
 - Added change log support ([#62](https://github.com/Nifacy/c4-patterns/issues/62))
 - Added lite & standalone versions of syntax plugin based on AspectJ ([#56](https://github.com/Nifacy/c4-patterns/issues/56))
+- Updated list of supported versions of external dependencies ([#69](https://github.com/Nifacy/c4-patterns/issues/69))
 
 ### Internal
 

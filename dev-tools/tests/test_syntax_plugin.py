@@ -19,10 +19,22 @@ _CUR_DIR_PATH: Final = Path(__file__).parent
 _DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".." / ".cache"
 _JWEAVER_RELEASES: Final = (
     _exporter_factory.JWeaverRelease(
+        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.22/aspectjweaver-1.9.22.jar",
+        version="1.9.22",
+    ),
+    _exporter_factory.JWeaverRelease(
+        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.23/aspectjweaver-1.9.23.jar",
+        version="1.9.23",
+    ),
+    _exporter_factory.JWeaverRelease(
         url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.24/aspectjweaver-1.9.24.jar",
         version="1.9.24",
-    )
-,)
+    ),
+    _exporter_factory.JWeaverRelease(
+        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.25/aspectjweaver-1.9.25.jar",
+        version="1.9.25",
+    ),
+)
 
 @dataclasses.dataclass(frozen=True, slots=True)
 class SuccessTestResult:
@@ -157,6 +169,10 @@ def _get_test_configs(
                 _exporter_release.StructurizrLiteRelease(
                     version="v2025.03.28",
                     url="https://github.com/structurizr/lite/releases/download/v2025.03.28/structurizr-lite.war",
+                ),
+                _exporter_release.StructurizrLiteRelease(
+                    version="v2025.05.28",
+                    url="https://github.com/structurizr/lite/releases/download/v2025.05.28/structurizr-lite.war",
                 ),
             ],
             reduced_test_configs=[
