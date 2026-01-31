@@ -19,58 +19,6 @@ _CUR_DIR_PATH: Final = Path(__file__).parent
 _DOWNLOAD_CACHE_PATH: Final = _CUR_DIR_PATH / ".." / ".cache"
 _JWEAVER_RELEASES: Final = (
     _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.0/aspectjweaver-1.9.0.jar",
-        version="1.9.0",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.1/aspectjweaver-1.9.1.jar",
-        version="1.9.1",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.2/aspectjweaver-1.9.2.jar",
-        version="1.9.2",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.3/aspectjweaver-1.9.3.jar",
-        version="1.9.3",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.4/aspectjweaver-1.9.4.jar",
-        version="1.9.4",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.5/aspectjweaver-1.9.5.jar",
-        version="1.9.5",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.6/aspectjweaver-1.9.6.jar",
-        version="1.9.6",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.7/aspectjweaver-1.9.7.jar",
-        version="1.9.7",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.8/aspectjweaver-1.9.8.jar",
-        version="1.9.8",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.9/aspectjweaver-1.9.9.jar",
-        version="1.9.9",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.19/aspectjweaver-1.9.19.jar",
-        version="1.9.19",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.20/aspectjweaver-1.9.20.jar",
-        version="1.9.20",
-    ),
-    _exporter_factory.JWeaverRelease(
-        url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.21/aspectjweaver-1.9.21.jar",
-        version="1.9.21",
-    ),
-    _exporter_factory.JWeaverRelease(
         url="https://repo1.maven.org/maven2/org/aspectj/aspectjweaver/1.9.22/aspectjweaver-1.9.22.jar",
         version="1.9.22",
     ),
