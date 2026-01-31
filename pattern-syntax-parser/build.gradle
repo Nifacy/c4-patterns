@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'io.github.nifacy.c4patterns'
-version = '1.0'
+version = releaseVersion
 
 java {
     toolchain {

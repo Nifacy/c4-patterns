@@ -9,7 +9,7 @@ spotless {
     }
 }
 
-def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: '1.0'
+def patternLibVersion = project.findProperty("deps.pattern-lib.version") ?: releaseVersion
 
 java {
     toolchain {
